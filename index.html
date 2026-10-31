@@ -25,7 +25,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 #hud{flex:0 0 auto;background:var(--panel);border-bottom:1px solid var(--line);padding:8px 16px}
 #hud:empty{display:none}
 #main{flex:1 1 auto;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
-#act{flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:grid;gap:8px;max-height:48%;overflow-y:auto}
+#act{flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;max-height:48%;overflow-y:auto}
+#act>*{flex-shrink:0}
+button{height:auto}
 #act:empty{display:none}
 h1,h2,h3{font-family:var(--display);font-weight:400;margin:0 0 .4em;text-wrap:balance;letter-spacing:.02em}
 h1{font-size:2.3rem;line-height:1.05;color:var(--ember2)}
@@ -137,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.5'; // ophogen bij elke publicatie
+const VERSION = '0.6'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -1660,8 +1662,9 @@ function rStad() {
     setUI(`<div class="mute small" style="letter-spacing:.15em">STADJE ${T.i + 1} VAN 4</div><h1>${town.n}</h1><p class="prose">${town.d}</p>
       ${!T.story ? `<button class="pri" data-a="tstory" style="width:100%">${sev.t}<span class="sub">Iemand wacht op je.</span></button>` : ''}
       ${p.picks > 0 ? `<button class="pri" data-a="ovskill" style="width:100%;margin-top:8px">Nieuwe vaardigheid kiezen<span class="badge">${p.picks}</span></button>` : ''}
-      ${S.quests.length ? `<div class="sec">MISSIES</div><div class="chips">${S.quests.map(q => `<span class="chip ${q.long ? 'tr' : ''}">${q.title} ${q.prog}/${q.goal}</span>`).join('')}</div>` : ''}`,
-      `<div class="grid2">
+      ${S.quests.length ? `<div class="sec">MISSIES</div><div class="chips">${S.quests.map(q => `<span class="chip ${q.long ? 'tr' : ''}">${q.title} ${q.prog}/${q.goal}</span>`).join('')}</div>` : ''}
+      <div class="sec">HET PLEIN</div>
+      <div class="grid2">
         <button data-a="ttab" data-v="herberg">Herberg<span class="sub">Rusten, geruchten</span></button>
         <button data-a="ttab" data-v="smid">Smid<span class="sub">Verbeteren, herrollen</span></button>
         <button data-a="ttab" data-v="trainer">Leermeesters<span class="sub">Alle spreukscholen</span></button>
@@ -1669,8 +1672,8 @@ function rStad() {
         <button data-a="ttab" data-v="prik">Prikbord<span class="sub">${activeQuests().length}/${QUEST_MAX} actief · ${T.offers.length} aangeboden</span></button>
         <button data-a="ttab" data-v="verken">Verkennen<span class="sub">${3 - T.spots.length} plek${3 - T.spots.length === 1 ? '' : 'ken'} over</span></button>
       </div>
-      <div class="grid2"><button class="c" data-a="ovinv">Uitrusting</button><button class="c" data-a="ovchar">Personage${p.pts ? `<span class="badge">${p.pts}</span>` : ''}</button><button class="c" data-a="ovquests">Missies</button><button class="c" data-a="codex">Boekerij</button></div>
-      <button class="pri c" data-a="leave">Vertrek naar ${next.n}<span class="sub">${p.hp < stats().maxHp ? `Je hebt ${p.hp}/${stats().maxHp} HP. Onderweg herstel je niet vanzelf.` : 'Volledig uitgerust'}</span></button>`);
+      <div class="grid2" style="margin-top:8px"><button class="c" data-a="ovinv">Uitrusting</button><button class="c" data-a="ovchar">Personage${p.pts ? `<span class="badge">${p.pts}</span>` : ''}</button><button class="c" data-a="ovquests">Missies</button><button class="c" data-a="codex">Boekerij</button></div>`,
+      `<button class="pri c" data-a="leave">Vertrek naar ${next.n}<span class="sub">${p.hp < stats().maxHp ? `Je hebt ${p.hp}/${stats().maxHp} HP. Onderweg herstel je niet vanzelf.` : 'Volledig uitgerust'}</span></button>`);
     return;
   }
   if (T.tab === 'herberg') {
