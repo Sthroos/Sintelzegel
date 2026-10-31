@@ -137,6 +137,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
+const VERSION = '0.5'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -502,31 +503,31 @@ const ENDINGS = {
 // Verhaalscènes per stadje, per verhaallaag (0 = Pelgrim/Avonturier, 1 = Veteraan/Meester, 2 = Legende/Eeuwige Nacht)
 const STORY = [
   [
-    { t: 'De zuster bij de put', x: 'Bij de dorpsput staat een vrouw in een grijze pij, zeven zilveren stralen op haar borst. "Je hebt de Grauwe Moeder verslagen," zegt ze. "Dan ben je wie ik vreesde."', c: [
-      { t: 'Vraag wie ze is', ok: () => ({ txt: '"Zuster Ilse, van de Orde van de Zeven Stralen. Wij bewaren wat de Wachters achterlieten." Ze vertelt je over de Zeven.', lore: 'l2', xp: 20 }) },
-      { t: 'Neem haar zegen aan', ok: () => ({ txt: 'Ze legt twee vingers op je voorhoofd. Ze zijn ijskoud.', bless: 'toren' }) },
+    { t: 'De zuster bij de put', x: 'Bij de dorpsput staat een vrouw in een grijze pij, zeven zilveren stralen op haar borst. Ze kijkt naar je hand. "Je hebt de Grauwe Moeder verslagen," zegt ze. "Dan draag je het teken echt. Dan ben je wie ik vreesde."', c: [
+      { t: 'Vraag waarom ze je vreest', ok: () => ({ txt: '"Wie het zegel kan sluiten, kan het ook openen," zegt ze. "Ik ben Zuster Ilse, van de Orde van de Zeven Stralen. Wij bewaken het zegel al drieduizend jaar, ook tegen mensen met jouw teken. De kloosters zien in jou een redder. De priesters van Askroon zien een sleutel." Ze laat je hand los. "Ik weet nog niet welke van de twee je bent."', lore: 'l2' }) },
+      { t: 'Neem haar zegen aan', ok: () => ({ txt: '"Dan maar zo," zegt ze. "Als je een sleutel bent, dan liever een sterke dan een gebroken." Ze legt twee vingers op je voorhoofd. Ze zijn ijskoud.', bless: 'toren' }) },
       { t: 'Loop door', ok: () => ({ txt: 'Je voelt haar blik nog lang in je rug.' }) }] },
-    { t: 'De verbrande pagina', x: 'Zuster Ilse wacht je op bij de put. "De abt is niet aan ouderdom gestorven," zegt ze zacht. "Hij schreef te veel op." Ze houdt je een half verbrande pagina voor.', c: [
-      { t: 'Vertrouw haar', ok: () => ({ txt: '"Als het zover is," zegt ze, "breek het. Beloof me dat je het breekt." Je weet nog niet wat ze bedoelt.', flag: 'zuster', lore: 'ilse' }) },
-      { t: 'Vraag waarom de Orde de Zevende verzwijgt', chk: ['int', 13], ok: () => ({ txt: '"Omdat de Zevende het zegel kan openen," fluistert ze. "En jij bent haar erfgenaam."', flag: 'zuster', lore: 'ilse', xp: 30 }), no: () => ({ txt: 'Ze klemt haar lippen op elkaar en loopt weg. De pagina laat ze achter.', xp: 15 }) },
+    { t: 'De verbrande pagina', x: 'Zuster Ilse wacht je op bij de put. "De abt is niet aan ouderdom gestorven," zegt ze zacht. "Hij schreef op wat de Orde al drieduizend jaar verzwijgt: wie de Zevende Wachter was." Ze houdt je een half verbrande pagina voor.', c: [
+      { t: 'Vertrouw haar', ok: () => ({ txt: '"Bij de troon zul je iets in handen krijgen dat klopt," zegt ze. "Breek het. Beloof me dat je het breekt." Je weet nog niet wat ze bedoelt, maar je knikt.', flag: 'zuster', lore: 'ilse' }) },
+      { t: 'Vraag waarom de Orde de Zevende verzwijgt', chk: ['int', 13], ok: () => ({ txt: '"Omdat wie haar naam kent, het zegel kan openen," fluistert ze. "En jij bent haar erfgenaam. Jij hebt alleen de naam nog niet."', flag: 'zuster', lore: 'ilse', xp: 30 }), no: () => ({ txt: 'Ze klemt haar lippen op elkaar en loopt weg. De pagina laat ze achter.', xp: 15 }) },
       { t: 'Neem de pagina en laat haar staan', ok: () => ({ txt: 'Op de pagina staat in het handschrift van de abt: ZIJ HEETTE. De rest is verbrand.', xp: 15 }) }] },
     { t: 'De bekentenis', x: 'Zuster Ilse zit op de rand van de put, haar handen trillend. "Ik heb de abt vergiftigd," zegt ze. "Op bevel van de Orde. Hij wilde jou haar naam vertellen."', c: [
-      { t: 'Vergeef haar', ok: () => ({ txt: 'Ze huilt zonder geluid. Dan fluistert ze het begin van een naam, het enige wat de abt nog kon zeggen: "Ve..."', flag: 'zuster', frag: 0, lore: 'ilse' }) },
-      { t: 'Eis de rest van de waarheid', chk: ['int', 15], ok: () => ({ txt: 'Ze vertelt alles: het verbod, het gif, de eerste letters van de naam. "Ve..."', frag: 0, lore: 'ilse', xp: 40 }), no: () => ({ txt: 'Ze sluit zich af. "Je bent nog niet klaar," zegt ze.' }) },
+      { t: 'Vergeef haar', ok: () => ({ txt: 'Ze huilt zonder geluid. "Ik zat bij hem toen het gif werkte," zegt ze. "Hij probeerde het je nog na te laten. Meer dan het begin kreeg hij er niet uit: Ve..."', flag: 'zuster', frag: 0, lore: 'ilse' }) },
+      { t: 'Eis de rest van de waarheid', chk: ['int', 15], ok: () => ({ txt: 'Ze vertelt alles: het verbod van de Orde, het gif, en wat de abt met zijn laatste adem nog probeerde te zeggen. "Ve..."', frag: 0, lore: 'ilse', xp: 40 }), no: () => ({ txt: 'Ze sluit zich af. "Je bent nog niet klaar," zegt ze.' }) },
       { t: 'Veroordeel haar', ok: () => ({ txt: 'Ze knikt alsof ze dit verdiende, en verdwijnt in de mist. Je woede maakt je sterker, maar de naam neemt ze mee.', bless: 'krijger' }) }] }
   ],
   [
-    { t: 'De klokkenluider', x: 'De oude Tamme zit op de klif, een gebarsten klepel op zijn schoot. "Mijn zus luidde de klokken van Merrow toen de zee kwam," zegt hij. "Ze luidt ze nog steeds."', c: [
+    { t: 'De klokkenluider', x: 'De oude Tamme zit op de klif, een gebarsten klepel op zijn schoot. "Mijn voormoeder luidde de klokken van Merrow toen de zee kwam," zegt hij. "Mijn familie luistert er al dertig generaties naar. Ze zeggen dat zij ze nog steeds luidt."', c: [
       { t: 'Luister naar zijn verhaal', ok: () => ({ txt: 'Hij vertelt over de nacht dat de sluizen opengingen. Je luistert tot de zon ondergaat.', lore: 'l7', xp: 25 }) },
       { t: 'Help hem de oude klok te luiden', chk: ['str', 12], ok: () => ({ txt: 'De klok galmt over het water. Onder de golven antwoordt, heel zacht, een andere klok. Tamme glimlacht.', bless: 'heler' }), no: () => ({ txt: 'Het touw is te zwaar. Tamme klopt je op de schouder.' }) },
       { t: 'Geef hem 20 goud', req: () => S.gold >= 20, ok: () => ({ txt: 'Hij drukt je in ruil een fles in handen. "Van mijn zus. Ze was alchemist."', gold: -20, cons: { elixer: 1 } }) }] },
-    { t: 'De man in het grijs', x: 'In de herberg zit een man in een asgrijze mantel. Op het servet voor hem staat jouw naam. "Mijn meester biedt je een plaats aan zijn tafel," zegt hij met een stem als brandend papier. "Niet nu. Aan het einde."', c: [
-      { t: 'Luister naar zijn aanbod', ok: () => ({ txt: '"Een koning die nooit sterft," zegt hij, "heeft een opvolger nodig die dat ook niet doet. Denk erover na." Hij laat een asgrijze veer achter.', flag: 'koerier' }) },
+    { t: 'De man in het grijs', x: 'In de herberg zit een man in een asgrijze mantel. Op het servet voor hem staat jouw naam. "Mijn meester biedt je een plaats aan zijn tafel," zegt hij met een stem als brandend papier. "Niet nu. Aan het einde. Als je hem verslaat, zul je begrijpen waarom."', c: [
+      { t: 'Luister naar zijn aanbod', ok: () => ({ txt: '"Mijn meester is moe," zegt hij. "Drieduizend jaar zonder hart. Hij zoekt iemand die de kroon van hem overneemt, zodat hij eindelijk mag sterven. Wie kan dat beter dan iemand met haar teken? Denk erover na." Hij laat een asgrijze veer achter.', flag: 'koerier' }) },
       { t: 'Trek je wapen', ok: () => ({ txt: 'Hij zucht en staat op.', fight: { ids: ['askoerier'], bonus: 2 } }) },
       { t: 'Negeer hem', ok: () => ({ txt: 'Als je weer opkijkt, is zijn stoel leeg. Het servet niet.' }) }] },
-    { t: 'De zoon van de Zesde', x: 'De Askoerier wacht op de klif, zonder kap. Zijn gezicht is jong en oud tegelijk. "Mijn vader was de Zesde," zegt hij. "Vorstbaard nam zijn hoofd en de Orde nam zijn naam. Morrath is de enige die nog weet hoe ik heet."', c: [
+    { t: 'De zoon van de Zesde', x: 'De Askoerier wacht op de klif, zonder kap. Zijn gezicht is jong en oud tegelijk. "Mijn vader was de Zesde," zegt hij. "Vorstbaard nam zijn hoofd en de Orde nam zijn naam. Morrath gaf mij wat hij Vorstbaard gaf, een leven zonder einde. Hij is de enige die nog weet hoe ik heet."', c: [
       { t: 'Luister tot het einde', ok: () => ({ txt: 'Hij vertelt wat zijn vader hem leerde: de tweede klank van een naam die niemand mocht onthouden. "...ri..."', flag: 'koerier', frag: 1, lore: 'koerier' }) },
-      { t: 'Bied hem een andere weg', chk: ['int', 15], ok: () => ({ txt: 'Lang zwijgt hij. Dan breekt hij zijn asgrijze veer. "...ri...," zegt hij. "Zo begon mijn vader haar naam. Gebruik het goed."', frag: 1, lore: 'koerier', bless: 'raafz' }), no: () => ({ txt: '"Er is geen andere weg," zegt hij, en vervaagt in de nevel.' }) },
+      { t: 'Bied hem een andere weg', chk: ['int', 15], ok: () => ({ txt: 'Lang zwijgt hij. Dan breekt hij zijn asgrijze veer. "...ri...," zegt hij. "Dat stuk van haar naam kende mijn vader. Gebruik het goed."', frag: 1, lore: 'koerier', bless: 'raafz' }), no: () => ({ txt: '"Er is geen andere weg," zegt hij, en vervaagt in de nevel.' }) },
       { t: 'Val hem aan', ok: () => ({ txt: '"Dan maar zo."', fight: { ids: ['askoerier'], bonus: 2 } }) }] }
   ],
   [
@@ -538,7 +539,7 @@ const STORY = [
       { t: 'Bid bij het graf', ok: () => ({ txt: 'Je handpalm brandt. Even zie je een brug in de sneeuw.', lore: 'l10', xp: 30 }) },
       { t: 'Doorzoek de crypte eronder', chk: ['dex', 13], ok: () => ({ txt: 'Achter een losse steen ligt iets dat de Zesde verborg voordat hij naar de brug ging.', item: 3 }), no: () => ({ txt: 'Het plafond kreunt. Je trekt je terug voordat het instort.', hp: -.12 }) }] },
     { t: 'De vrouw in het ijs', x: 'Diep onder het fort, in een grot van blauw ijs, staat een vrouw. Haar ogen bewegen. "Ik ben Hjelda," zegt ze zonder haar lippen te bewegen. "Mijn vader doodde de Zesde. De Zevende keek toe en deed niets. Wil je weten waarom?"', c: [
-      { t: 'Vraag waarom', ok: () => ({ txt: '"Het zegel moest gesmeed worden met verdriet. Ze offerde haar vriend, en daarna zichzelf. Ze vertelde mij haar naam, omdat ze wist dat ik nooit zou kunnen spreken. ...da..."', frag: 2, lore: 'hjelda' }) },
+      { t: 'Vraag waarom', ok: () => ({ txt: '"Het zegel moest gesmeed worden met verdriet. Ze offerde haar vriend, en daarna zichzelf. Na de brug kwam ze hier, bij mij, om te biechten. Ze vertelde mij haar naam, omdat ze wist dat ik hem nooit hardop zou kunnen zeggen. ...da..."', frag: 2, lore: 'hjelda' }) },
       { t: 'Bevrijd haar uit het ijs', chk: ['int', 14], ok: () => ({ txt: 'Het ijs smelt. Hjelda zet één stap, glimlacht, en vergaat tot sneeuw. In het smeltwater staat een klank gegrift: ...da...', frag: 2, lore: 'hjelda', bless: 'atronach' }), no: () => ({ txt: 'Het ijs geeft niet mee. "Later," zegt ze. "Ik heb tijd."' }) },
       { t: 'Zwijg en ga', ok: () => ({ txt: 'Haar ogen volgen je tot de bocht.' }) }] }
   ],
@@ -551,7 +552,7 @@ const STORY = [
       { t: 'Beloof het', ok: () => ({ txt: 'Ze sluit haar ogen. "Dank je." Je weet niet zeker of je het meende.', flag: 'zuster', xp: 30 }) },
       { t: 'Vraag wat er dan met haar gebeurt', ok: () => ({ txt: '"Ik ben honderdveertig jaar oud," zegt ze. "Wat denk je?"', lore: 'ilse', xp: 20 }) },
       { t: 'Weiger', ok: () => ({ txt: '"Dan hoop ik dat je iets beters vindt," zegt ze. "Ik heb het niet gevonden."' }) }] },
-    { t: 'De naam in de vlam', x: 'De lampwachter slaapt naast de lamp. Hij mompelt. In de vlam bewegen letters die er niet horen te zijn.', c: [
+    { t: 'De naam in de vlam', x: 'De lampwachter slaapt naast de lamp. Volgens het dorp heeft de Zevende deze lamp zelf aangestoken, en de vlam gevoed met het laatste wat ze nog bezat: haar naam. De oude man mompelt. In de vlam bewegen letters die er niet horen te zijn.', c: [
       { t: 'Lees de naam in de vlam', chk: ['int', 15], ok: () => ({ txt: 'De vlam buigt naar je toe en spreekt de laatste klank uit: ...ne.', frag: 3, xp: 40 }), no: () => ({ txt: 'De letters dansen te snel. Je ogen tranen.', hp: -.1 }) },
       { t: 'Doof de lamp', ok: () => ({ txt: 'In het donker hoor je de laatste klank heel duidelijk: ...ne. Overal in het dorp gaan honden blaffen. Iets is wakker geworden.', frag: 3, curse: 'onrust' }) },
       { t: 'Laat de man slapen', ok: () => ({ txt: 'Sommige namen blijven beter in het vuur.' }) }] }
@@ -608,9 +609,9 @@ const QUESTGIVERS = ['Jager Maud', 'Smidsvrouw Ottilie', 'Broeder Jonas', 'Kapit
 EN.askoerier = { n: 'De Askoerier', elite: 1, hp: 70, fa: 25, ma: 35, dmg: [6, 9], xp: 60, gold: [40, 70], moves: [{ n: 'Asdolk', w: 3, k: 'atk', m: 1.1 }, { n: 'Brandend perkament', w: 2, k: 'atk', m: .9, el: 'vuur', st: ['brand', 3, 1] }, { n: 'Lost op in as', w: 1, k: 'buff', st: ['ontwijk', 2] }] };
 EN.moeder.say = ['Ze snuffelt aan je hand en aarzelt, heel even, alsof ze iemand herkent.', '"Kind van de Zevende," gromt ze, met een stem die geen wolf hoort te hebben. "Zij heeft mij ook verlaten."'];
 EN.priores.say = ['"Jij," fluistert ze. "Zij stond naast mij op de muur. Ze keek niet om."', '"Ik opende de sluizen voor een leugen. Laat mij je laten voelen hoe koud dat water was."'];
-EN.vorstbaard.say = ['"Je hebt haar ogen. Zij keek ook toe, op de brug."', '"Mijn dochter leeft nog, in het ijs. Als je haar hebt gezien, weet je wat eeuwig leven kost."'];
+EN.vorstbaard.say = ['"Je hebt haar ogen. Zij keek ook toe, op de brug."', '"Mijn dochter leeft nog, in het ijs onder het fort in de pas. Ga naar haar toe, als je wilt weten wat eeuwig leven kost."'];
 EN.colossus.say = ['"SLEUTELDRAGER HERKEND. TOEGANG... GEWEIGERD."', '"HONDERDDUIZEND STEMMEN IN DE KERN. ZE VRAGEN OM STILTE. GEEF HUN STILTE."'];
-EN.morrath1.say = ['"Ze heeft je niets verteld, hè? Natuurlijk niet. Mij vertelde ze ook niets."', '"Ik weet wat je in de visioenen zag. Ik was erbij. Vraag je af wie hier het monster is."'];
+EN.morrath1.say = ['"Ze hebben je niets verteld, hè? De Orde niet, en zij al helemaal niet. Mij vertelde ze ook niets."', '"Ik weet wat je in de visioenen zag. Ik was erbij. Vraag je af wie hier het monster is."'];
 const tier = () => S.diff <= 1 ? 0 : S.diff <= 3 ? 1 : 2;
 const EVX = {};
 STORY.forEach((arr, i) => arr.forEach((ev, t) => { ev.id = `st${i}${t}`; EVX[ev.id] = ev; }));
@@ -1756,6 +1757,7 @@ function rTitle() {
       <button data-a="codex">Boekerij, relikwieën en erelijst<span class="sub">${M.lore.length}/${Object.keys(LORE).length} pagina's · ${M.relics.length}/${Object.keys(RELICS).length} relikwieën</span></button>
     </div>
     <p class="small mute" style="margin-top:22px">Voortgang wordt in deze browser bewaard. Moeilijkheden ontgrendeld: ${M.unlocked}/6.</p>
+    <p class="small mute" style="opacity:.6">versie ${VERSION}</p>
   </div></div>`, '');
   embers();
 }
@@ -1952,7 +1954,7 @@ function rEinde() {
   else {
     const E = {
       herstel: `<h1>Het zegel houdt</h1><p class="prose">Morrath valt uiteen tot as, en de as valt eindelijk naar beneden. Je legt het hart terug in het zegel. In de verte hoor je het zich sluiten, als een deur die in het slot valt. Valdoren ademt uit. Maar je hand blijft warm. Ergens diep onder de troon klopt iets, en wacht.</p>`,
-      troon: `<h1>De Askoning</h1><p class="prose">Je zet het hart in je eigen borst. Het past, alsof er al die tijd plaats voor was. De as daalt eindelijk neer, en ze daalt op jouw schouders. De Askoerier knielt in de vlakte. "Majesteit." Valdoren heeft weer een koning die nooit zal sterven. Het voelt minder koud dan je dacht. Voorlopig.</p>`,
+      troon: `<h1>De Askoning</h1><p class="prose">Je zet het hart in je eigen borst. Het past, alsof er al die tijd plaats voor was. De as daalt eindelijk neer, en ze daalt op jouw schouders. Achter je zucht iets in de as, opgelucht, en is dan stil: Morrath mag eindelijk sterven. De Askoerier knielt in de vlakte. "Majesteit." Valdoren heeft weer een koning die nooit zal sterven. Het voelt minder koud dan je dacht. Voorlopig.</p>`,
       vernietig: `<h1>De Dove Bron</h1><p class="prose">Je knijpt. Het hart breekt als een ei van obsidiaan. Overal in Valdoren doven de vuren die niet van deze wereld zijn. Het teken in je hand verbleekt tot een litteken. In Laatste Licht gaat de lamp uit. Ergens in Valdoren valt Zuster Ilse glimlachend tot stof. Er zal nooit meer magie zijn in Valdoren. Ook nooit meer een Holle Koning.</p>`,
       naam: `<h1>De Zevende</h1><p class="prose">Je spreekt haar naam uit: <em>Veridane</em>. Het hart in je handen wordt warm, dan heet, dan licht. Wat er van Morrath over is kijkt op. "Zo heette ze," zegt hij zacht. Je legt het hart terug in de Bron, niet als slot, maar als wond die mag helen. Het zegel sluit zich voorgoed. De Zevende Wachter heeft weer een naam, en jij draagt hem verder.</p>${c.d >= 5 ? '<p class="prose">Het Ledige trekt zich terug als een getij. Het heeft jouw gezicht niet meer. In de stilte daarna hoor je, heel ver weg, een wolvin huilen, een klok onder water luiden, en iemand lachen. Het is de eerste keer in drieduizend jaar dat de Zevende lacht.</p>' : ''}`
     };
