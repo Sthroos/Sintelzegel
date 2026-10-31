@@ -645,8 +645,8 @@ const EVENTS = [
     { t: 'Laat de steen met rust', ok: () => ({ txt: 'Sommige dingen lees je beter niet.' }) }] },
   { id: 'tol', reg: 0, t: 'De tolbrug', x: 'Drie struikrovers versperren de brug. "Tol," zegt de grootste. "Twintig goud. Of je laarzen. Of allebei."', c: [
     { t: 'Betaal 20 goud', req: () => S.gold >= 20, ok: () => ({ txt: 'Ze laten je grijnzend door.', gold: -20 }) },
-    { t: 'Intimideer ze', chk: ['str', 11], ok: () => ({ txt: 'Je trekt je wapen half uit de schede. De kleinste rent al. De andere twee volgen en laten hun buit achter.', gold: R(15, 30), xp: 15 }), no: () => ({ txt: '"Verkeerde keus," zegt de grootste.', fight: { ids: ['rover', 'rover'] } }) },
-    { t: 'Val aan voordat ze klaar zijn', ok: () => ({ txt: 'Je stormt de brug op. Ze hadden dit niet verwacht.', fight: { ids: ['rover', 'rover'], est: { kwetsbaar: 2 } } }) }] },
+    { t: 'Intimideer ze', chk: ['str', 11], ok: () => ({ txt: 'Je trekt je wapen half uit de schede. De kleinste rent al. De andere twee volgen en laten hun buit achter.', gold: R(15, 30), xp: 15 }), no: () => ({ txt: 'De kleinste zet het al op een lopen. "Verkeerde keus," zegt de grootste, en trekt zijn mes.', fight: { ids: ['rover', 'rover'] } }) },
+    { t: 'Val aan voordat ze klaar zijn', ok: () => ({ txt: 'Je stormt de brug op. Ze hadden dit niet verwacht.', fight: { ids: ['rover', 'rover', 'rover'], est: { kwetsbaar: 2 } } }) }] },
   { id: 'hol', reg: 0, t: 'Het wolvenhol', x: 'Een hol onder een omgevallen eik. Botten liggen verspreid voor de ingang, en ertussen glinstert iets van metaal.', c: [
     { t: 'Sluip naar binnen', chk: ['dex', 11], ok: () => ({ txt: 'De wolven slapen. Je pakt wat glinstert en bent weg voordat er één een oog opendoet.', item: 1, gold: R(5, 15) }), no: () => ({ txt: 'Een tak knapt onder je voet. Gele ogen gaan open.', fight: { ids: ['wolf', 'wolf'] } }) },
     { t: 'Rook ze uit met een fakkel', ok: () => ({ txt: 'Rook vult het hol. Brandende wolven stormen naar buiten.', fight: { ids: ['wolf', 'wolf'], est: { brand: 2 }, bonus: 1 } }) },
