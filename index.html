@@ -282,7 +282,7 @@ const TRAITS = {
 // moves: k = atk|buff|heal|armor|debuff|summon|charge. st: [status, beurten, kans]. cc: [cc, beurten]
 const EN = {
   wolf: { n: 'Grijze Wolf', hp: 20, fa: 3, ma: 2, dmg: [3, 5], xp: 9, gold: [0, 3], moves: [{ n: 'Bijten', w: 3, k: 'atk', m: 1 }, { n: 'Verscheuren', w: 1, k: 'atk', m: .8, st: ['bloed', 2, .7] }] },
-  rover: { n: 'Struikrover', hp: 24, fa: 8, ma: 3, dmg: [3, 6], xp: 10, gold: [4, 10], moves: [{ n: 'Houw', w: 3, k: 'atk', m: 1 }, { n: 'Zand in de ogen', w: 1, k: 'debuff', st: ['zwak', 2] }] },
+  rover: { n: 'Struikrover', hp: 24, fa: 8, ma: 3, dmg: [3, 6], xp: 10, gold: [4, 10], moves: [{ n: 'Houw', w: 3, k: 'atk', m: 1 }, { n: 'Zand in de ogen', w: 1, k: 'debuff', st: ['verblind', 2] }] },
   kobold: { n: 'Kobold-vonkenzanger', hp: 16, fa: 2, ma: 8, dmg: [3, 5], xp: 10, gold: [2, 6], moves: [{ n: 'Vonkenspuw', w: 3, k: 'atk', m: 1, el: 'vuur', st: ['brand', 2, .5] }, { n: 'Kruidenzalf', w: 1, k: 'heal', m: .25 }] },
   spin: { n: 'Woudspin', hp: 20, fa: 5, ma: 2, dmg: [3, 5], xp: 9, gold: [0, 2], moves: [{ n: 'Gifbeet', w: 2, k: 'atk', m: .9, st: ['gif', 3, .8] }, { n: 'Spinsel', w: 1, k: 'debuff', st: ['zwak', 2] }] },
   brannoc: { n: 'Roverhoofdman Brannoc', elite: 1, hp: 55, fa: 22, ma: 8, dmg: [5, 8], xp: 40, gold: [25, 45], moves: [{ n: 'Zware Houw', w: 2, k: 'atk', m: 1.2 }, { n: 'Haalt uit voor een grote zwaai', w: 1, k: 'charge', then: 'zwaai' }, { n: 'Strijdkreet', w: 1, k: 'buff', st: ['versterkt', 2] }], x: { zwaai: { n: 'Verwoestende Zwaai', k: 'atk', m: 2.2 } } },
@@ -376,12 +376,12 @@ const SK = {
 
   vuurschicht: { n: 'Vuurschicht', mp: 4, cd: 0, magic: 1, d: '100% spreukkracht als vuur, met brand (2 beurten).', use: (g, t) => { const r = pSpell(g, 1, 'vuur', 'Vuurschicht'); if (g.hp > 0 && !r.noBurn) addSt(g, 'brand', 2, dotPow(t, .3)); } },
   ijsschicht: { n: 'IJsschicht', mp: 5, cd: 0, magic: 1, d: '90% spreukkracht als ijs. Bevriest natte doelen zonder magisch pantser.', use: (g) => pSpell(g, .9, 'ijs', 'IJsschicht') },
-  regenwolk: { n: 'Regenwolk', mp: 5, cd: 3, magic: 1, aoe: 1, d: 'Alle vijanden worden nat (3 beurten); dooft brand. Bliksem op natte doelen verdooft, ijs bevriest.', use: () => { alive().forEach(e => { pSpell(e, .3, 'water', 'Regen'); if (e.hp > 0) addSt(e, 'nat', 3); }); } },
+  regenwolk: { n: 'Regenwolk', mp: 5, cd: 3, magic: 1, aoe: 1, d: '30% waterschade; alle vijanden worden nat (3 beurten) en brand dooft. Bliksem op natte doelen verdooft, ijs bevriest.', use: () => { alive().forEach(e => { pSpell(e, .3, 'water', 'Regen'); if (e.hp > 0) addSt(e, 'nat', 3); }); } },
   bliksemschicht: { n: 'Bliksemschicht', mp: 7, cd: 2, magic: 1, d: '130% spreukkracht als bliksem. Op natte doelen +50% en verdoofd.', use: (g) => pSpell(g, 1.3, 'bliksem', 'Bliksemschicht') },
   vuurbal: { n: 'Vuurbal', mp: 12, cd: 3, magic: 1, aoe: 1, d: '90% vuur op alle vijanden, met brand.', use: (g, t) => alive().forEach(e => { const r = pSpell(e, .9, 'vuur', 'Vuurbal'); if (e.hp > 0 && !r.noBurn) addSt(e, 'brand', 2, dotPow(t, .3)); }) },
   ketenbliksem: { n: 'Ketenbliksem', mp: 12, cd: 3, magic: 1, aoe: 1, d: '85% bliksem op alle vijanden.', use: () => alive().forEach(e => pSpell(e, .85, 'bliksem', 'Ketenbliksem')) },
   winterhand: { n: 'Winterhand', mp: 10, cd: 4, magic: 1, aoe: 1, d: '70% ijs op alle vijanden en verzwakt ze 2 beurten.', use: () => alive().forEach(e => { pSpell(e, .7, 'ijs', 'Winterhand'); if (e.hp > 0) addSt(e, 'zwak', 2); }) },
-  herstel: { n: 'Herstel', mp: 8, cd: 4, self: 1, d: 'Heelt 35% HP en verwijdert brand, gif, bloeden en nat.', use: () => { healP(stats().maxHp * .35); ['brand', 'gif', 'bloed', 'nat', 'olie'].forEach(k => delete S.p.st[k]); log('Een koel licht trekt door je aderen.'); } },
+  herstel: { n: 'Herstel', mp: 8, cd: 4, self: 1, d: 'Heelt 35% HP en verwijdert brand, gif, bloeden, nat en olie.', use: () => { healP(stats().maxHp * .35); ['brand', 'gif', 'bloed', 'nat', 'olie'].forEach(k => delete S.p.st[k]); log('Een koel licht trekt door je aderen.'); } },
   magischschild: { n: 'Magisch Schild', mp: 8, cd: 5, self: 1, d: 'Herstelt 60% magisch en 30% fysiek pantser.', use: () => { restoreArm(S.p, 'ma', .6); restoreArm(S.p, 'fa', .3); log('Een koepel van blauw licht sluit zich om je heen.'); } },
   meteoor: { n: 'Meteoor', mp: 20, cd: 6, magic: 1, d: '240% vuur op het doel en 100% op de rest, met brand.', use: (g, t) => { const r = pSpell(g, 2.4, 'vuur', 'Meteoor'); if (g.hp > 0 && !r.noBurn) addSt(g, 'brand', 3, dotPow(t, .4)); alive().filter(e => e !== g).forEach(e => pSpell(e, 1, 'vuur', 'Inslag')); } },
 
@@ -420,9 +420,9 @@ Object.assign(SK, {
   dodenpantser: { n: 'Dodenpantser', mp: 8, cd: 5, self: 1, d: 'Herstelt 50% fysiek pantser, +10% per lijk op het veld.', use: () => { restoreArm(S.p, 'fa', Math.min(1, .5 + .1 * S.c.corpses)); log('Botten kruipen over je schouders en vormen een harnas.'); } },
   zielenoogst: { n: 'Zielenoogst', mp: 14, cd: 5, aoe: 1, magic: 1, d: '115% arcaan op alle vijanden; je heelt 8% HP per geraakte vijand.', use: () => { const a = alive(); a.forEach(e => pSpell(e, 1.15, 'arcaan', 'Zielenoogst')); healP(stats().maxHp * .08 * a.length); } },
   // Oproepen (Intelligentie)
-  geestwolf: { n: 'Geestwolf', mp: 6, cd: 4, self: 1, summon: 1, d: 'Roept een geestwolf op (3 beurten). Laat bloeden.', use: () => summon('geestwolf', 3) },
+  geestwolf: { n: 'Geestwolf', mp: 6, cd: 4, self: 1, summon: 1, d: 'Roept een geestwolf op (3 beurten). Zijn beten kunnen laten bloeden.', use: () => summon('geestwolf', 3) },
   bindendeschicht: { n: 'Bindende Schicht', mp: 4, cd: 0, magic: 1, d: '100% arcaan; je oproepingen worden versterkt.', use: (g) => { pSpell(g, 1, 'arcaan', 'Bindende Schicht'); S.c.allies.forEach(a => addSt(a, 'versterkt', 2)); } },
-  vuurelementaal: { n: 'Vuurelementaal', mp: 10, cd: 4, self: 1, summon: 1, d: 'Roept een vuurelementaal op (4 beurten). Zet in brand.', use: () => summon('vuurelementaal', 4) },
+  vuurelementaal: { n: 'Vuurelementaal', mp: 10, cd: 4, self: 1, summon: 1, d: 'Roept een vuurelementaal op (4 beurten). Kan in brand zetten.', use: () => summon('vuurelementaal', 4) },
   ijsgolem: { n: 'IJsgolem', mp: 12, cd: 5, self: 1, summon: 1, d: 'Roept een IJsgolem op (4 beurten). Trekt de meeste aanvallen naar zich toe.', use: () => summon('ijsgolem', 4) },
   bezielen: { n: 'Bezielen', mp: 6, cd: 3, self: 1, req: () => S.c.allies.length > 0, d: 'Je oproepingen helen 40%, worden versterkt (2) en blijven 1 beurt langer.', use: () => { S.c.allies.forEach(a => { a.hp = Math.min(a.maxHp, a.hp + Math.round(a.maxHp * .4)); addSt(a, 'versterkt', 2); a.turns++; }); log('Je blaast nieuw leven in je oproepingen.'); } },
   offerande: { n: 'Offerande', mp: 5, cd: 3, req: () => S.c.allies.length > 0, d: 'Offer je oudste oproeping: je heelt de helft van zijn HP en het doel krijgt zijn HP als arcaanschade.', use: (g) => { const a = S.c.allies.shift(); healP(a.hp * .5); const r = hurt(g, a.hp, 'arcaan'); log(`${a.n} vergaat in licht en raakt ${g.n}: <b>${r.total}</b> arcaan${armTxt(r)}${r.note}`); postCC(g, r); } },
@@ -509,7 +509,7 @@ const STORY = [
     { t: 'De verbrande pagina', x: 'Zuster Ilse wacht je op bij de put. "De abt is niet aan ouderdom gestorven," zegt ze zacht. "Hij schreef te veel op." Ze houdt je een half verbrande pagina voor.', c: [
       { t: 'Vertrouw haar', ok: () => ({ txt: '"Als het zover is," zegt ze, "breek het. Beloof me dat je het breekt." Je weet nog niet wat ze bedoelt.', flag: 'zuster', lore: 'ilse' }) },
       { t: 'Vraag waarom de Orde de Zevende verzwijgt', chk: ['int', 13], ok: () => ({ txt: '"Omdat de Zevende het zegel kan openen," fluistert ze. "En jij bent haar erfgenaam."', flag: 'zuster', lore: 'ilse', xp: 30 }), no: () => ({ txt: 'Ze klemt haar lippen op elkaar en loopt weg. De pagina laat ze achter.', xp: 15 }) },
-      { t: 'Neem de pagina en laat haar staan', ok: () => ({ txt: 'Op de pagina staat in het handschrift van de abt: ZIJ HEETTE', gold: 10 }) }] },
+      { t: 'Neem de pagina en laat haar staan', ok: () => ({ txt: 'Op de pagina staat in het handschrift van de abt: ZIJ HEETTE. De rest is verbrand.', xp: 15 }) }] },
     { t: 'De bekentenis', x: 'Zuster Ilse zit op de rand van de put, haar handen trillend. "Ik heb de abt vergiftigd," zegt ze. "Op bevel van de Orde. Hij wilde jou haar naam vertellen."', c: [
       { t: 'Vergeef haar', ok: () => ({ txt: 'Ze huilt zonder geluid. Dan fluistert ze het begin van een naam, het enige wat de abt nog kon zeggen: "Ve..."', flag: 'zuster', frag: 0, lore: 'ilse' }) },
       { t: 'Eis de rest van de waarheid', chk: ['int', 15], ok: () => ({ txt: 'Ze vertelt alles: het verbod, het gif, de eerste letters van de naam. "Ve..."', frag: 0, lore: 'ilse', xp: 40 }), no: () => ({ txt: 'Ze sluit zich af. "Je bent nog niet klaar," zegt ze.' }) },
@@ -532,7 +532,7 @@ const STORY = [
   [
     { t: 'De nachtwacht', x: 'Hoofdman Bresk kijkt je aan over de rand van zijn beker. "Vannacht komen ze weer uit de pas. Ik heb negentien man en één Zegeldrager, als je blijft."', c: [
       { t: 'Help de wacht', ok: () => ({ txt: 'Ze komen bij het tweede uur.', fight: { ids: ['ijswolf', 'grafwachter'], bonus: 2 } }) },
-      { t: 'Deel je helende dranken', req: () => (S.p.cons.heal || 0) > 0, ok: () => ({ txt: 'Bresk kijkt naar de fles, dan naar jou. Hij buigt zijn hoofd.', cons: { heal: -1 }, bless: 'heler', xp: 20 }) },
+      { t: 'Geef een helende drank aan de wacht', req: () => (S.p.cons.heal || 0) > 0, ok: () => ({ txt: 'Bresk kijkt naar de fles, dan naar jou. Hij buigt zijn hoofd.', cons: { heal: -1 }, bless: 'heler', xp: 20 }) },
       { t: 'Rust liever', ok: () => ({ txt: 'Je slaapt slecht. Iemand anders houdt de wacht.' }) }] },
     { t: 'Het lege graf', x: 'In de kapel van het fort staat een graftombe met het teken van de Zesde Wachter. Het deksel is verschoven. "Er heeft nooit iemand in gelegen," zegt Bresk. "Alleen een naam. En die is weggekrast."', c: [
       { t: 'Bid bij het graf', ok: () => ({ txt: 'Je handpalm brandt. Even zie je een brug in de sneeuw.', lore: 'l10', xp: 30 }) },
@@ -629,9 +629,9 @@ const TOMES = SCHOOL_SKILLS.univ.slice();
 const EVENTS = [
   { id: 'pelgrim', t: 'De gewonde pelgrim', x: 'Naast de weg ligt een pelgrim in een grauwe pij, een pijl in zijn dij. Hij klemt een in leer gebonden boek tegen zich aan. "Het teken," fluistert hij als hij je hand ziet. "Dus het is waar."', c: [
     { t: 'Verzorg zijn wond', chk: ['int', 10], ok: () => ({ txt: 'Je trekt de pijl eruit en bindt de wond af met kruiden uit zijn eigen tas. Dankbaar drukt hij je het boek en een zakje munten in handen.', lore: 'l2', gold: R(10, 20), xp: 20 }), no: () => ({ txt: 'Je doet wat je kunt, maar de wond is dieper dan je dacht. Hij sterft met een glimlach, het boek nog in zijn armen. Je neemt het mee.', lore: 'l2' }) },
-    { t: 'Neem zijn boek en zijn beurs', ok: () => ({ txt: 'Hij verzet zich niet. Hij kijkt je alleen aan, lang. De munten voelen zwaarder dan ze zijn.', gold: R(25, 40), curse: chance(.5) ? 'gierig' : null }) },
+    { t: 'Neem zijn boek en zijn beurs', ok: () => ({ txt: 'Hij verzet zich niet. Hij kijkt je alleen aan, lang. De munten voelen zwaarder dan ze zijn.', lore: 'l2', gold: R(25, 40), curse: chance(.5) ? 'gierig' : null }) },
     { t: 'Loop door', ok: () => ({ txt: 'Je hebt geen tijd. Het zegel wacht niet.' }) }] },
-  { id: 'kapel', t: 'De verlaten kapel', x: 'Een kapel, half overwoekerd. Op het altaar staat een beeld van een vrouw met zeven stralen rond haar hoofd. Haar gezicht is weggebeiteld.', c: [
+  { id: 'kapel', t: 'De verlaten kapel', x: 'Een kapel, half ingestort. Op het altaar staat een beeld van een vrouw met zeven stralen rond haar hoofd. Haar gezicht is weggebeiteld.', c: [
     { t: 'Bid bij het altaar', ok: () => chance(.65) ? { txt: 'Je handpalm gloeit. Het beeld lijkt heel even te knikken.', bless: 'rand' } : { txt: 'Het beeld zwijgt. Toch voel je je lichter.', xp: 15, hp: .15 } },
     { t: 'Doorzoek de crypte', chk: ['dex', 12], ok: () => ({ txt: 'Tussen de botten van een vergeten priester vind je iets dat de moeite waard is.', item: 1, gold: R(10, 25) }), no: () => ({ txt: 'Een tegel geeft mee. Speren schieten uit de muur.', hp: -.15 }) },
     { t: 'Vertrek', ok: () => ({ txt: 'Je laat de doden met rust.' }) }] },
@@ -688,10 +688,10 @@ const EVENTS = [
   { id: 'bron', t: 'De heldere bron', x: 'Een bron tussen de stenen. Het water smaakt naar ijzer en munt.', c: [
     { t: 'Drink', ok: () => ({ txt: 'Koud en zuiver. Je voelt je beter.', hp: .35, mp: .5 }) },
     { t: 'Vul een lege fles', ok: () => ({ txt: 'Je kurkt de fles en stopt hem weg.', cons: { heal: 1 } }) }] },
-  { id: 'hinderlaag', t: 'Te stil', x: 'Het is te stil. Zelfs de vogels houden hun adem in.', c: [
+  { id: 'hinderlaag', t: 'Te stil', x: 'Het is te stil. Zelfs je eigen ademhaling klinkt te hard.', c: [
     { t: 'Speur de omgeving af', chk: ['dex', 12], ok: () => ({ txt: 'Je ziet ze eerder dan zij jou. Jij slaat als eerste.', fight: { region: 1, est: { kwetsbaar: 2 } } }), no: () => ({ txt: 'Ze springen tevoorschijn voordat je je wapen hebt.', fight: { region: 1, pst: { zwak: 2 } } }) },
     { t: 'Ren erdoorheen', chk: ['vit', 12], ok: () => ({ txt: 'Je bent voorbij voordat ze kunnen reageren.', xp: 20 }), no: () => ({ txt: 'Je struikelt. Ze zijn bij je.', fight: { region: 1 } }) }] },
-  { id: 'dagboek', t: 'De achtergelaten rugzak', x: 'Een rugzak tegen een boom. Van de eigenaar geen spoor. Bovenop ligt een dagboek.', c: [
+  { id: 'dagboek', t: 'De achtergelaten rugzak', x: 'Een rugzak tegen een rotsblok. Van de eigenaar geen spoor. Bovenop ligt een dagboek.', c: [
     { t: 'Lees het dagboek', ok: () => ({ txt: 'Het handschrift wordt steeds slordiger.', lore: 'l15', xp: 15 }) },
     { t: 'Doorzoek de rugzak', ok: () => ({ txt: 'Een paar lopers en wat munten.', cons: { loper: 2 }, gold: R(8, 20) }) }] },
   { id: 'gevallen', reg: 4, t: 'De geknielde ridder', x: 'Een ridder in zwartgeblakerd pantser knielt in de as, het hoofd gebogen. Op zijn schild herken je zeven stralen.', c: [
@@ -1593,7 +1593,7 @@ function questHook(kind, d) {
     if ((q.k === 'kill' || q.k === 'elite') && kind === 'kill' && d.id === q.target) hit = true;
     if (q.k === 'killany' && kind === 'kill') hit = true;
     if (q.k === 'elites' && kind === 'kill' && d.elite && !d.boss) hit = true;
-    if (q.k === 'boss' && kind === 'kill' && d.boss && d.id === REGIONS[q.until].boss && !S.c.potUsed) hit = true;
+    if (q.k === 'boss' && kind === 'kill' && d.boss && S.reg === q.until && !S.c.potUsed) hit = true;
     if (q.k === kind && (kind === 'kist' || kind === 'worp' || kind === 'relic')) hit = true;
     if (!hit) continue;
     q.prog++;
@@ -1886,7 +1886,7 @@ function rEvent() {
 }
 function rKist() {
   const c = S.ctx, t = stats();
-  const desc = { houten: 'Een eenvoudige houten kist, half begraven onder bladeren.', beslagen: 'Een zware kist met ijzerbeslag en een stevig hangslot.', verguld: 'Een vergulde kist met fijn slotwerk. Wie zoiets achterlaat, wil dat het gevonden wordt. Of niet.' }[c.type];
+  const desc = { houten: `Een eenvoudige houten kist, half begraven onder ${['bladeren', 'zeewier', 'sneeuw', 'stof', 'as'][S.reg]}.`, beslagen: 'Een zware kist met ijzerbeslag en een stevig hangslot.', verguld: 'Een vergulde kist met fijn slotwerk. Wie zoiets achterlaat, wil dat het gevonden wordt. Of niet.' }[c.type];
   const msgs = c.msg.map(m => `<p class="small">${m}</p>`).join('');
   if (c.opened) {
     setUI(`<h2>${CHESTN[c.type]}</h2>${msgs}<p class="prose">Het deksel gaat open.</p><ul class="gain">${c.lines.map(l => `<li>${l}</li>`).join('')}</ul>`,
@@ -1953,7 +1953,7 @@ function rEinde() {
     const E = {
       herstel: `<h1>Het zegel houdt</h1><p class="prose">Morrath valt uiteen tot as, en de as valt eindelijk naar beneden. Je legt het hart terug in het zegel. In de verte hoor je het zich sluiten, als een deur die in het slot valt. Valdoren ademt uit. Maar je hand blijft warm. Ergens diep onder de troon klopt iets, en wacht.</p>`,
       troon: `<h1>De Askoning</h1><p class="prose">Je zet het hart in je eigen borst. Het past, alsof er al die tijd plaats voor was. De as daalt eindelijk neer, en ze daalt op jouw schouders. De Askoerier knielt in de vlakte. "Majesteit." Valdoren heeft weer een koning die nooit zal sterven. Het voelt minder koud dan je dacht. Voorlopig.</p>`,
-      vernietig: `<h1>De Dove Bron</h1><p class="prose">Je knijpt. Het hart breekt als een ei van obsidiaan. Overal in Valdoren doven de vuren die niet van deze wereld zijn. Het teken in je hand verbleekt tot een litteken. Ver weg in Laatste Licht gaat de lamp uit, en Zuster Ilse valt glimlachend tot stof. Er zal nooit meer magie zijn in Valdoren. Ook nooit meer een Holle Koning.</p>`,
+      vernietig: `<h1>De Dove Bron</h1><p class="prose">Je knijpt. Het hart breekt als een ei van obsidiaan. Overal in Valdoren doven de vuren die niet van deze wereld zijn. Het teken in je hand verbleekt tot een litteken. In Laatste Licht gaat de lamp uit. Ergens in Valdoren valt Zuster Ilse glimlachend tot stof. Er zal nooit meer magie zijn in Valdoren. Ook nooit meer een Holle Koning.</p>`,
       naam: `<h1>De Zevende</h1><p class="prose">Je spreekt haar naam uit: <em>Veridane</em>. Het hart in je handen wordt warm, dan heet, dan licht. Wat er van Morrath over is kijkt op. "Zo heette ze," zegt hij zacht. Je legt het hart terug in de Bron, niet als slot, maar als wond die mag helen. Het zegel sluit zich voorgoed. De Zevende Wachter heeft weer een naam, en jij draagt hem verder.</p>${c.d >= 5 ? '<p class="prose">Het Ledige trekt zich terug als een getij. Het heeft jouw gezicht niet meer. In de stilte daarna hoor je, heel ver weg, een wolvin huilen, een klok onder water luiden, en iemand lachen. Het is de eerste keer in drieduizend jaar dat de Zevende lacht.</p>' : ''}`
     };
     txt = E[c.end || 'herstel'] + (c.d >= 4 ? `<div class="lore">${LORE.l14[1]}</div>` : '') + (c.d <= 1 ? '<p class="small mute">Op Veteraan en hoger hoor je meer van dit verhaal en kun je anders kiezen.</p>' : `<p class="small mute">Eindes ontdekt: ${M.endings.length}/4</p>`);
