@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.6'; // ophogen bij elke publicatie
+const VERSION = '0.7'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -712,7 +712,7 @@ if (!M || typeof M !== 'object') M = {};
 M = Object.assign({ unlocked: 2, relics: [], lore: [], wins: [0, 0, 0, 0, 0, 0], endings: [], runs: 0, deaths: 0, kills: 0, best: 0 }, M);
 let S = store.get(RUN_KEY);
 if (S && S.v !== 1) S = null;
-if (S) { S.quests = (S.quests || []).map(q => q.until === undefined ? { ...q, until: q.reg, borg: 0, long: false } : q); S.rep = S.rep || 0; S.flags = S.flags || []; S.frags = S.frags || []; S.vis = S.vis || []; if (S.c) { S.c.allies = S.c.allies || []; S.c.corpses = S.c.corpses || 0; } }
+if (S) { S.quests = (S.quests || []).map(q => q.until === undefined ? { ...q, until: q.reg, borg: 0, long: false } : q); S.rep = S.rep || 0; S.eliteDone = S.eliteDone || []; S.flags = S.flags || []; S.frags = S.frags || []; S.vis = S.vis || []; if (S.c) { S.c.allies = S.c.allies || []; S.c.corpses = S.c.corpses || 0; } }
 let VIEW = S ? 'title' : 'title'; // titelscherm altijd eerst
 let CR = null; // karaktercreatie (niet opgeslagen)
 let OV = null; // overlay buiten run-state: 'codex'
@@ -937,7 +937,7 @@ function newRun(c) {
   M.runs++; saveMeta();
   S = {
     v: 1, screen: 'regio', ov: null, diff: c.diff, reg: 0, step: 0, choices: null, ctx: null, c: null,
-    seenEv: [], bless: [], quests: [], rep: 0, flags: [], frags: [], vis: [], town: null, gold: 25, uid: 1, pickOpts: null, kills: 0,
+    seenEv: [], bless: [], quests: [], rep: 0, eliteDone: [], flags: [], frags: [], vis: [], town: null, gold: 25, uid: 1, pickOpts: null, kills: 0,
     p: { name: c.name, cls: c.cls, sign: c.sign, lvl: 1, xp: 0, pts: 0, picks: 0, ...cls.stats, hp: 1, mp: 1, fa: 0, ma: 0, st: {}, eq: { wapen: null, helm: null, harnas: null, amulet: null, ring: null }, bag: [], cons: { heal: 3, mana: 1, loper: 1 }, skills: cls.skills.slice(), revive: c.sign === 'feniks' ? 1 : 0 }
   };
   S.p.eq.wapen = genItem({ ilvl: 1, slot: 'wapen', r: 0, base: cls.wk });
@@ -954,6 +954,7 @@ function log(h, cls) { S.c.log.push({ h, c: cls || '', t: S.c.turn }); if (S.c.l
 function target() { const a = alive(); return a.find(e => e.uid === S.c.target) || a[0]; }
 
 function mkEnemy(id, L, kind) {
+  const champ = id.startsWith('champ:'); if (champ) id = id.slice(6);
   const b = EN[id], D = DIFFS[S.diff];
   const bf = b.boss ? .6 : 1, hm = (1 + .38 * (L - 1)) * D.hp * bf, dm = (1 + .2 * (L - 1)) * D.dm, am = (1 + .35 * (L - 1)) * Math.sqrt(D.hp) * (b.boss ? .8 : 1);
   const e = { id, n: b.n, L, uid: S.uid++, maxHp: Math.round(b.hp * hm), fa: Math.round(b.fa * am), ma: Math.round(b.ma * am), dmg: [b.dmg[0] * dm, b.dmg[1] * dm], dmgMul: 1, st: {}, intent: null, forced: null, boss: !!b.boss, elite: !!(b.elite || kind === 'elite'), traits: [], regen: b.regen || 0, vamp: 0, fiery: false, xp: Math.round(b.xp * (1 + .35 * (L - 1))), gold: Math.round(R(b.gold[0], b.gold[1]) * (1 + .3 * (L - 1))) };
@@ -961,6 +962,13 @@ function mkEnemy(id, L, kind) {
   if (!b.boss) { if (chance(D.trait)) nt++; if (e.elite && S.diff >= 3) nt++; } else if (S.diff >= 5) nt = 1;
   const tk = shuffle(Object.keys(TRAITS)).slice(0, nt);
   for (const k of tk) { TRAITS[k].a(e); e.traits.push(k); }
+  if (champ) {
+    // Aanvoerder: gewone regiovijand, versterkt tot elite, met altijd minstens één eigenschap.
+    e.n = `${b.n}-aanvoerder`; e.elite = true;
+    e.maxHp = Math.round(e.maxHp * 1.9); e.fa = Math.round(e.fa * 1.4 + 4); e.ma = Math.round(e.ma * 1.4 + 4); e.dmgMul *= 1.2;
+    e.xp = Math.round(e.xp * 2.5); e.gold = Math.round(e.gold * 2 + 10);
+    if (!e.traits.length) { const k = pick(Object.keys(TRAITS)); TRAITS[k].a(e); e.traits.push(k); }
+  }
   e.hp = e.maxHp; e.maxFa = e.fa; e.maxMa = e.ma;
   return e;
 }
@@ -1128,7 +1136,7 @@ function startFight(ids, o = {}) {
   }
   S.c = { en, kind, allies: [], corpses: 0, ret: o.ret || null, potUsed: false, turn: 0, cd: {}, log: [], rew: { xp: 0, gold: 0, items: [], lines: [] }, defend: false, potion: false, target: en[0].uid, mantel: false, bonus: o.bonus || 0, sub: null };
   S.screen = 'combat';
-  const b = EN[ids[0]];
+  const b = EN[ids[0].replace('champ:', '')];
   if (b.intro) { log(b.intro, 'boss'); if (b.say && tier() > 0) log(b.say[tier() - 1], 'boss'); }
   else log(`${o.intro ? o.intro + ' ' : ''}Tegenover je: ${en.map(e => e.n).join(', ')}.`);
   playerTurnStart();
@@ -1233,6 +1241,7 @@ function reap() {
     const rw = S.c.rew; rw.xp += e.xp; rw.gold += e.gold;
     log(`${e.n} valt.`, 'kill');
     S.c.corpses++; questHook('kill', e);
+    if (REGIONS.some(r => r.elite === e.id) && !S.eliteDone.includes(e.id)) S.eliteDone.push(e.id);
     const L = e.L;
     if (e.boss) {
       rw.items.push(genItem({ ilvl: L, bias: 2.5 }), genItem({ ilvl: L, bias: 1.5 }));
@@ -1366,7 +1375,7 @@ function enterNode(i) {
   const reg = REGIONS[S.reg];
   switch (node.k) {
     case 'gevecht': startFight(genGroup(), { kind: 'normal' }); return;
-    case 'elite': startFight(S.reg >= 2 ? [reg.elite, pick(reg.pool)] : [reg.elite], { kind: 'elite' }); return;
+    case 'elite': { const lead = S.eliteDone.includes(reg.elite) ? 'champ:' + pick(reg.pool) : reg.elite; startFight(S.reg >= 2 ? [lead, pick(reg.pool)] : [lead], { kind: 'elite' }); return; }
     case 'boss': startFight([reg.boss], { kind: 'boss' }); return;
     case 'visioen': S.vis.push(S.reg); S.screen = 'event'; S.ctx = { id: 'vis' + S.reg + (tier() === 1 ? 'a' : 'b'), res: null }; break;
     case 'kist': S.screen = 'kist'; S.ctx = newChest(); break;
@@ -1564,7 +1573,7 @@ function genQuests() {
   const longUntil = Math.min(4, r + 2);
   const short = [
     { k: 'kill', target: tgt, goal: n, u: .25 * n, title: `Dood ${n}× ${EN[tgt].n}`, x: `"Ze hebben mijn ${pick(['broer', 'kudde', 'kar', 'zoon', 'hond'])} te pakken gehad, onderweg naar ${reg.n}."` },
-    { k: 'elite', target: reg.elite, goal: 1, u: 1, title: `Versla ${EN[reg.elite].n}`, x: '"Er staat een prijs op dat hoofd. Een goede."' },
+    ...(S.eliteDone.includes(reg.elite) ? [] : [{ k: 'elite', target: reg.elite, goal: 1, u: 1, title: `Versla ${EN[reg.elite].n}`, x: '"Er staat een prijs op dat hoofd. Een goede."' }]),
     { k: 'kist', goal: 3, u: .8, title: 'Open 3 kisten', x: `"In ${reg.n} ligt meer verborgen dan iemand durft te halen. Breng me verhalen, ik betaal."` },
     { k: 'worp', goal: 3, u: .7, title: 'Slaag voor 3 dobbelworpen', x: '"Ik wed dat je het niet kunt. Drie keer geluk, en je krijgt mijn inzet."' },
     { k: 'boss', goal: 1, u: 2, title: `Versla ${EN[reg.boss].n} zonder drankjes`, x: '"Iedereen wint met een tas vol drankjes. Laat zien wat je echt kunt."' }
@@ -1826,7 +1835,8 @@ function rMap() {
   const nodes = S.choices.map((n, i) => {
     const N = NODES[n.k];
     if (n.k === 'boss') { const b = EN[reg.boss]; return `<button class="node boss pri" data-a="node" data-v="${i}"><span class="sig">${N.s}</span><span><b>${b.n}</b><span class="sub">De wachter van ${reg.n}. Er is geen weg omheen.</span></span></button>`; }
-    return `<button class="node ${n.k}" data-a="node" data-v="${i}"><span class="sig">${N.s}</span><span><b>${N.n}</b><span class="sub">${N.d}</span></span></button>`;
+    const d = n.k === 'elite' ? (S.eliteDone.includes(reg.elite) ? 'Een aanvoerder met zijn troep. Gegarandeerde buit.' : `${EN[reg.elite].n} wacht hier. Gegarandeerde buit.`) : N.d;
+    return `<button class="node ${n.k}" data-a="node" data-v="${i}"><span class="sig">${N.s}</span><span><b>${N.n}</b><span class="sub">${d}</span></span></button>`;
   }).join('');
   const p = S.p;
   setUI(`<h2>${reg.n}</h2><div class="prog">${prog}</div>
