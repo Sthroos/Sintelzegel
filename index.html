@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.8'; // ophogen bij elke publicatie
+const VERSION = '0.9'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -240,7 +240,7 @@ const RELICS = {
   koningshelm: { n: 'Helm van de Gevallen Koning', slot: 'helm', ak: 'kroon', afx: { str: 3, int: 3 }, fx: 'koning', fxd: '+20% schade, −10% maximale HP.', d: 'Wie hem draagt, hoort soms een stem die niet de zijne is.' },
   uilenveer: { n: 'Uilenveer-ring', slot: 'ring', afx: { mpr: 3, int: 2, mp: 10 }, d: 'Een veer die nooit vergaat, gevat in zilver.' },
   slangenoog: { n: 'Oog van de Slang', slot: 'amulet', afx: { dex: 4, crit: 5 }, fx: 'slangenoog', fxd: 'Wapenaanvallen hebben 30% kans op gif.', d: 'Het knippert.' },
-  raaf: { n: 'Hoorn van de Raaf', slot: 'amulet', afx: { int: 2, dex: 2, str: 2 }, fx: 'raaf', fxd: '+25% ervaring en goud.', d: 'Wie erop blaast, hoort de doden antwoorden.' },
+  raaf: { n: 'Hoorn van de Raaf', slot: 'amulet', afx: { int: 2, dex: 2, str: 2 }, fx: 'raaf', fxd: '+25% ervaring en goud. Een oproeping die sneuvelt, staat één keer weer op als skelet (2 beurten).', d: 'Wie erop blaast, hoort de doden antwoorden.' },
   askroon: { n: 'Kroon van Morrath', slot: 'helm', ak: 'kroon', afx: { str: 6, dex: 6, int: 6, vit: 6 }, fx: 'askroon', fxd: '+30% schade. Alleen te vinden op Meester of hoger.', d: 'De vlammen zijn zwart. Ze branden niet. Ze nemen.' }
 };
 
@@ -871,9 +871,11 @@ function genTome() {
 }
 function addToBag(it, lines) {
   if (!it) return;
-  if (S.p.bag.length >= BAG_MAX) { const g = Math.round(it.val * .4); S.gold += g; if (lines) lines.push(`Je tas is vol: ${rName(it)} ontmanteld voor ${g} goud`); return; }
+  // Volle tas: niets automatisch weggooien. Het voorwerp gaat mee; daarna kiest de speler wat weg moet.
+  const over = S.p.bag.length >= BAG_MAX;
+  it.fresh = true;
   S.p.bag.push(it); claimRelic(it);
-  if (lines) lines.push(`${rName(it)}${it.r === 5 ? ' <i>(relikwie!)</i>' : ''}`);
+  if (lines) lines.push(`${rName(it)}${it.r === 5 ? ' <i>(relikwie!)</i>' : ''}${over ? ' <span class="down small">(tas te vol: kies straks wat weg moet)</span>' : ''}`);
 }
 const rName = it => `<span class="r${it.r}">${esc(it.n)}</span>`;
 function itemScore(it) {
@@ -1104,6 +1106,18 @@ function summon(id, turns) {
   S.c.allies.push(a);
   log(`${b.n} verschijnt aan je zijde (${turns} beurten).`, 'kill');
 }
+// Hoorn van de Raaf: gesneuvelde oproepingen keren één keer terug als skelet.
+function reapAllies() {
+  const dead = S.c.allies.filter(a => a.hp <= 0);
+  S.c.allies = S.c.allies.filter(a => a.hp > 0);
+  if (!dead.length || !stats().fx.raaf) return;
+  for (const d of dead) {
+    if (d.undead) continue;
+    log(`De Hoorn van de Raaf klinkt. ${d.n} antwoordt vanuit de dood.`, 'kill');
+    summon('skelet', 2);
+    const sk = S.c.allies[S.c.allies.length - 1]; sk.undead = true; sk.n = `Skelet van ${d.n.toLowerCase().replace(/^de /, '')}`;
+  }
+}
 function alliesAct() {
   for (const a of S.c.allies.slice()) {
     if (a.hp <= 0) continue;
@@ -1119,7 +1133,8 @@ function alliesAct() {
     }
     if (a.turns <= 0 && a.hp > 0) log(`${a.n} vervaagt.`);
   }
-  S.c.allies = S.c.allies.filter(a => a.hp > 0 && a.turns > 0);
+  reapAllies();
+  S.c.allies = S.c.allies.filter(a => a.turns > 0);
 }
 function mpCost(sk, t) { return Math.round(sk.mp * (t.fx.goedkoop ? .75 : 1)); }
 
@@ -1224,7 +1239,7 @@ function enemyPhase() {
     if (cc) { log(`${e.n} is ${STN[cc].toLowerCase()} en doet niets.`); e.intent = null; continue; }
     if (!e.intent) chooseIntent(e);
     enemyAct(e);
-    S.c.allies = S.c.allies.filter(a => a.hp > 0);
+    reapAllies();
     if (S.p.hp <= 0 && !checkSurvive()) return lose();
   }
   reap();
@@ -1751,6 +1766,8 @@ function render() {
   if (VIEW === 'title') return rTitle();
   if (VIEW === 'create') return rCreate();
   if (OV === 'codex') return rCodex();
+  if (S.p.bag.length > BAG_MAX && !['combat', 'einde', 'keuze'].includes(S.screen)) return rBagFull();
+  S.p.bag.forEach(i => { delete i.fresh; });
   if (S.ov) return ({ inv: rInv, char: rChar, skill: rSkillPick, quests: rQuests })[S.ov]();
   ({ regio: rRegio, map: rMap, combat: rCombat, buit: rBuit, event: rEvent, kist: rKist, shop: rShop, kamp: rKamp, schrijn: rSchrijn, einde: rEinde, stad: rStad, keuze: rKeuze })[S.screen]();
   if (TOAST) $('#main').insertAdjacentHTML('afterbegin', `<div class="card small" style="margin-bottom:10px;border-color:var(--ember)">${TOAST}</div>`);
@@ -1986,6 +2003,12 @@ function rEinde() {
 }
 
 // overlays
+function rBagFull() {
+  const bag = S.p.bag.slice().sort((a, b) => (b.fresh ? 1 : 0) - (a.fresh ? 1 : 0));
+  setUI(`<h2>Je tas is vol</h2><p class="prose">Je draagt ${S.p.bag.length} voorwerpen; er passen er ${BAG_MAX}. Kies wat je uitrust, leest of ontmantelt voordat je verder gaat. Wat je net vond staat bovenaan.</p>
+    <div class="stack">${bag.map(it => itemCard(it, `${it.fresh ? '<span class="chip good">nieuw</span>' : ''}<button data-a="equip" data-v="${it.uid}">${it.slot === 'tome' ? 'Lezen' : 'Uitrusten'}</button><button data-a="scrap" data-v="${it.uid}">Ontmantel · ${Math.round(it.val * .4)} g</button>`, true)).join('')}</div>`,
+    `<p class="small mute" style="margin:0;text-align:center">Nog ${S.p.bag.length - BAG_MAX} voorwerp${S.p.bag.length - BAG_MAX > 1 ? 'en' : ''} te veel</p>`);
+}
 function rInv() {
   const p = S.p, tab = S.invTab || 'eq';
   let body;
