@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.10'; // ophogen bij elke publicatie
+const VERSION = '0.11'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -761,10 +761,10 @@ function gainXp(n, lines) {
   n = Math.round(n * (hasB('raafz') ? 1.15 : 1) * (t.fx.raaf ? 1.25 : 1));
   S.p.xp += n;
   while (S.p.xp >= xpNeed(S.p.lvl)) {
-    S.p.xp -= xpNeed(S.p.lvl); S.p.lvl++; S.p.pts += 3;
+    S.p.xp -= xpNeed(S.p.lvl); S.p.lvl++; S.p.pts += 2;
     if (S.p.lvl % 3 === 0) S.p.picks++;
     const t2 = stats(); S.p.hp = Math.min(t2.maxHp, S.p.hp + Math.round(t2.maxHp * .3)); S.p.mp = t2.maxMp;
-    if (lines) lines.push(`<span class="lvlup">Niveau ${S.p.lvl}! +3 attribuutpunten${S.p.lvl % 3 === 0 ? ', nieuwe vaardigheid te kiezen' : ''}</span>`);
+    if (lines) lines.push(`<span class="lvlup">Niveau ${S.p.lvl}! +2 attribuutpunten${S.p.lvl % 3 === 0 ? ', nieuwe vaardigheid te kiezen' : ''}</span>`);
   }
   return n;
 }
