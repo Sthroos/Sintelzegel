@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.11'; // ophogen bij elke publicatie
+const VERSION = '0.12'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -152,14 +152,14 @@ const store = {
 const DIFFS = [
   { n: 'Pelgrim', d: 'Voor wie vooral het verhaal wil beleven. Zwakkere vijanden.', hp: .75, dm: .7, loot: 0, trait: 0, camp: 1.2 },
   { n: 'Avonturier', d: 'De bedoelde ervaring.', hp: 1, dm: 1, loot: 0, trait: .08, camp: 1 },
-  { n: 'Veteraan', d: 'Sterkere vijanden, vaker met eigenschappen. Betere buit. Nieuwe verhaallaag: visioenen van de Zevende, nieuwe gesprekken en andere eindes.', hp: 1.35, dm: 1.2, loot: 1, trait: .3, camp: .9 },
-  { n: 'Meester', d: 'Elites dragen twee eigenschappen. Kampvuren helen minder. Veel betere buit. Verhaallaag van Veteraan.', hp: 1.8, dm: 1.45, loot: 2, trait: .55, camp: .75 },
+  { n: 'Veteraan', d: 'Sterkere vijanden, vaker met eigenschappen. Betere buit. Nieuwe verhaallaag: visioenen van de Zevende, nieuwe gesprekken en andere eindes.', hp: 1.5, dm: 1.3, loot: 1, trait: .3, camp: .9 },
+  { n: 'Meester', d: 'Elites dragen twee eigenschappen. Kampvuren helen minder. Veel betere buit. Verhaallaag van Veteraan.', hp: 2, dm: 1.55, loot: 2, trait: .55, camp: .75 },
   { n: 'Legende', d: 'Bijna elke vijand heeft eigenschappen. Derde verhaallaag: herinneringen van Morrath, de naam van de Zevende en het ware einde.', hp: 2.4, dm: 1.75, loot: 3, trait: .8, camp: .6 },
-  { n: 'Eeuwige Nacht', d: 'Alles wil je dood. De Holle Koning heeft een laatste gedaante.', hp: 3.1, dm: 2.05, loot: 4, trait: 1, camp: .5 }
+  { n: 'Eeuwige Nacht', d: 'Alles wil je dood. De Holle Koning heeft een laatste gedaante.', hp: 2.8, dm: 1.95, loot: 4, trait: 1, camp: .5 }
 ];
 
 const CLASSES = {
-  krijger: { n: 'Zwaardzweerder', main: 'str', d: 'Veteraan van de legioenen van Valdoren. Zwaar pantser, harde klappen, breekt verdediging.', stats: { str: 8, dex: 4, int: 2, vit: 7 }, wk: 'zwaard', ak: 'malie', skills: ['krachtslag', 'schildslag'], pool: ['oorlogskreet', 'wervelwind', 'schildbreker', 'bloeddorst', 'executie', 'onverzettelijk', 'grondbreker'] },
+  krijger: { n: 'Zwaardzweerder', main: 'str', d: 'Veteraan van de legioenen van Valdoren. Zwaar pantser, harde klappen, breekt verdediging.', stats: { str: 8, dex: 4, int: 2, vit: 9 }, wk: 'zwaard', ak: 'malie', skills: ['krachtslag', 'schildslag'], pool: ['oorlogskreet', 'wervelwind', 'schildbreker', 'bloeddorst', 'executie', 'onverzettelijk', 'grondbreker'] },
   dief: { n: 'Schaduwloper', main: 'dex', d: 'Sluipt, vergiftigt en laat bloeden. Ontwijkt klappen in plaats van ze te vangen.', stats: { str: 3, dex: 8, int: 3, vit: 6 }, wk: 'dolk', ak: 'leer', skills: ['gifsteek', 'bloedsnede'], pool: ['dubbelsteek', 'rookbom', 'brandpijl', 'olieflacon', 'sluipaanval', 'schaduwdans', 'gifwolk'] },
   magier: { n: 'Bronmagiër', main: 'int', d: 'Drinkt van de Bron. Combineert elementen: water geleidt bliksem, ijs bevriest wat nat is.', stats: { str: 2, dex: 3, int: 9, vit: 5 }, wk: 'staf', ak: 'gewaad', skills: ['vuurschicht', 'ijsschicht'], pool: ['regenwolk', 'bliksemschicht', 'vuurbal', 'ketenbliksem', 'winterhand', 'herstel', 'magischschild', 'meteoor'] }
 };
@@ -197,8 +197,8 @@ const WEAP = [
   { k: 'scepter', n: 'Scepter', st: 'int', mn: .6, mx: .75, sp: 1.25 }
 ];
 const ARMB = {
-  helm: [{ k: 'helm', n: 'Helm', f: 1.1, m: .5 }, { k: 'kap', n: 'Kap', f: .5, m: 1.1, cloth: 1 }, { k: 'kroon', n: 'Kroon', f: .75, m: .85 }],
-  harnas: [{ k: 'malie', n: 'Maliënkolder', f: 1.25, m: .4 }, { k: 'leer', n: 'Leren harnas', f: .85, m: .8 }, { k: 'gewaad', n: 'Gewaad', f: .35, m: 1.3, cloth: 1 }]
+  helm: [{ k: 'helm', n: 'Helm', f: 1.1, m: .5 }, { k: 'kap', n: 'Kap', f: .7, m: 1.1, cloth: 1 }, { k: 'kroon', n: 'Kroon', f: .75, m: .85 }],
+  harnas: [{ k: 'malie', n: 'Maliënkolder', f: 1.25, m: .4 }, { k: 'leer', n: 'Leren harnas', f: .85, m: .8 }, { k: 'gewaad', n: 'Gewaad', f: .65, m: 1.3, cloth: 1 }]
 };
 const MATS = [[1, 'IJzeren', 'Koperen', 'Linnen'], [4, 'Stalen', 'Zilveren', 'Wollen'], [7, 'Aeldrische', 'Gouden', 'Zijden'], [10, 'Glazen', 'Maanstenen', 'Gewijde'], [13, 'Ebbenhouten', 'Sterrenstalen', 'Sterrengeweven'], [16, 'Sintelsmeed', 'Sintelsmeed', 'Sintelgeweven']];
 const AFX = {
@@ -289,7 +289,7 @@ const EN = {
   kobold: { n: 'Kobold-vonkenzanger', hp: 16, fa: 2, ma: 8, dmg: [3, 5], xp: 10, gold: [2, 6], moves: [{ n: 'Vonkenspuw', w: 3, k: 'atk', m: 1, el: 'vuur', st: ['brand', 2, .5] }, { n: 'Kruidenzalf', w: 1, k: 'heal', m: .25 }] },
   spin: { n: 'Woudspin', hp: 20, fa: 5, ma: 2, dmg: [3, 5], xp: 9, gold: [0, 2], moves: [{ n: 'Gifbeet', w: 2, k: 'atk', m: .9, st: ['gif', 3, .8] }, { n: 'Spinsel', w: 1, k: 'debuff', st: ['zwak', 2] }] },
   brannoc: { n: 'Roverhoofdman Brannoc', elite: 1, hp: 55, fa: 22, ma: 8, dmg: [5, 8], xp: 40, gold: [25, 45], moves: [{ n: 'Zware Houw', w: 2, k: 'atk', m: 1.2 }, { n: 'Haalt uit voor een grote zwaai', w: 1, k: 'charge', then: 'zwaai' }, { n: 'Strijdkreet', w: 1, k: 'buff', st: ['versterkt', 2] }], x: { zwaai: { n: 'Verwoestende Zwaai', k: 'atk', m: 2.2 } } },
-  moeder: { n: 'De Grauwe Moeder', boss: 1, hp: 150, fa: 25, ma: 20, dmg: [6, 9], xp: 100, gold: [60, 90], relic: 'wolfstand', lore: 'l6', intro: 'Uit het struikgewas stapt een wolf zo groot als een paard. Haar vacht is grijs als as, haar ogen gloeien als sintels. Achter haar rolt het gehuil van de roedel als een golf door het woud.', moves: [{ n: 'Verscheuren', w: 3, k: 'atk', m: 1.1, st: ['bloed', 3, .6] }, { n: 'Roep de Roedel', w: 1, k: 'summon', sum: 'wolf' }, { n: 'Maanhuil', w: 1, k: 'buff', st: ['versterkt', 2] }, { n: 'Zakt door de poten voor een sprong', w: 1, k: 'charge', then: 'sprong' }], x: { sprong: { n: 'Halsbijt', k: 'atk', m: 2.3, cc: ['neergeslagen', 1] } } },
+  moeder: { n: 'De Grauwe Moeder', boss: 1, hp: 135, fa: 25, ma: 20, dmg: [6, 9], xp: 100, gold: [60, 90], relic: 'wolfstand', lore: 'l6', intro: 'Uit het struikgewas stapt een wolf zo groot als een paard. Haar vacht is grijs als as, haar ogen gloeien als sintels. Achter haar rolt het gehuil van de roedel als een golf door het woud.', moves: [{ n: 'Verscheuren', w: 3, k: 'atk', m: 1.1, st: ['bloed', 3, .6] }, { n: 'Roep de Roedel', w: 1, k: 'summon', sum: 'wolf' }, { n: 'Maanhuil', w: 1, k: 'buff', st: ['versterkt', 2] }, { n: 'Zakt door de poten voor een sprong', w: 1, k: 'charge', then: 'sprong' }], x: { sprong: { n: 'Halsbijt', k: 'atk', m: 2, cc: ['neergeslagen', 1] } } },
 
   verdronkene: { n: 'Verdronkene', hp: 28, fa: 7, ma: 5, dmg: [4, 7], xp: 12, gold: [2, 8], moves: [{ n: 'Wurggreep', w: 2, k: 'atk', m: 1 }, { n: 'Zilte Adem', w: 1, k: 'atk', m: .6, el: 'water', st: ['nat', 3, 1] }] },
   heks: { n: 'Moerasheks', hp: 22, fa: 3, ma: 12, dmg: [4, 6], xp: 13, gold: [4, 10], moves: [{ n: 'Gifwolk', w: 2, k: 'atk', m: .8, el: 'gif', st: ['gif', 3, 1] }, { n: 'Vloek van Broosheid', w: 1, k: 'debuff', st: ['kwetsbaar', 2] }, { n: 'Moerasbalsem', w: 1, k: 'heal', m: .3 }] },
@@ -377,13 +377,13 @@ const SK = {
   schaduwdans: { n: 'Schaduwdans', mp: 12, cd: 5, aoe: 1, d: 'Vier slagen van 60% op willekeurige vijanden.', use: () => { for (let i = 0; i < 4; i++) { const a = alive(); if (!a.length) break; pAtk(pick(a), .6, 'Schaduwdans'); } } },
   gifwolk: { n: 'Gifwolk', mp: 11, cd: 5, aoe: 1, d: 'Zwaar gif (4 beurten) op alle vijanden.', use: (g, t) => { alive().forEach(e => addSt(e, 'gif', 4, dotPow(t, .55))); log('Een groene wolk rolt over je vijanden.'); } },
 
-  vuurschicht: { n: 'Vuurschicht', mp: 4, cd: 0, magic: 1, d: '100% spreukkracht als vuur, met brand (2 beurten).', use: (g, t) => { const r = pSpell(g, 1, 'vuur', 'Vuurschicht'); if (g.hp > 0 && !r.noBurn) addSt(g, 'brand', 2, dotPow(t, .3)); } },
-  ijsschicht: { n: 'IJsschicht', mp: 5, cd: 0, magic: 1, d: '90% spreukkracht als ijs. Bevriest natte doelen zonder magisch pantser.', use: (g) => pSpell(g, .9, 'ijs', 'IJsschicht') },
+  vuurschicht: { n: 'Vuurschicht', mp: 4, cd: 0, magic: 1, d: '115% spreukkracht als vuur, met brand (2 beurten).', use: (g, t) => { const r = pSpell(g, 1.15, 'vuur', 'Vuurschicht'); if (g.hp > 0 && !r.noBurn) addSt(g, 'brand', 2, dotPow(t, .3)); } },
+  ijsschicht: { n: 'IJsschicht', mp: 5, cd: 0, magic: 1, d: '105% spreukkracht als ijs. Bevriest natte doelen zonder magisch pantser.', use: (g) => pSpell(g, 1.05, 'ijs', 'IJsschicht') },
   regenwolk: { n: 'Regenwolk', mp: 5, cd: 3, magic: 1, aoe: 1, d: '30% waterschade; alle vijanden worden nat (3 beurten) en brand dooft. Bliksem op natte doelen verdooft, ijs bevriest.', use: () => { alive().forEach(e => { pSpell(e, .3, 'water', 'Regen'); if (e.hp > 0) addSt(e, 'nat', 3); }); } },
-  bliksemschicht: { n: 'Bliksemschicht', mp: 7, cd: 2, magic: 1, d: '130% spreukkracht als bliksem. Op natte doelen +50% en verdoofd.', use: (g) => pSpell(g, 1.3, 'bliksem', 'Bliksemschicht') },
-  vuurbal: { n: 'Vuurbal', mp: 12, cd: 3, magic: 1, aoe: 1, d: '90% vuur op alle vijanden, met brand.', use: (g, t) => alive().forEach(e => { const r = pSpell(e, .9, 'vuur', 'Vuurbal'); if (e.hp > 0 && !r.noBurn) addSt(e, 'brand', 2, dotPow(t, .3)); }) },
-  ketenbliksem: { n: 'Ketenbliksem', mp: 12, cd: 3, magic: 1, aoe: 1, d: '85% bliksem op alle vijanden.', use: () => alive().forEach(e => pSpell(e, .85, 'bliksem', 'Ketenbliksem')) },
-  winterhand: { n: 'Winterhand', mp: 10, cd: 4, magic: 1, aoe: 1, d: '70% ijs op alle vijanden en verzwakt ze 2 beurten.', use: () => alive().forEach(e => { pSpell(e, .7, 'ijs', 'Winterhand'); if (e.hp > 0) addSt(e, 'zwak', 2); }) },
+  bliksemschicht: { n: 'Bliksemschicht', mp: 7, cd: 2, magic: 1, d: '145% spreukkracht als bliksem. Op natte doelen +50% en verdoofd.', use: (g) => pSpell(g, 1.45, 'bliksem', 'Bliksemschicht') },
+  vuurbal: { n: 'Vuurbal', mp: 12, cd: 3, magic: 1, aoe: 1, d: '105% vuur op alle vijanden, met brand.', use: (g, t) => alive().forEach(e => { const r = pSpell(e, 1.05, 'vuur', 'Vuurbal'); if (e.hp > 0 && !r.noBurn) addSt(e, 'brand', 2, dotPow(t, .3)); }) },
+  ketenbliksem: { n: 'Ketenbliksem', mp: 12, cd: 3, magic: 1, aoe: 1, d: '100% bliksem op alle vijanden.', use: () => alive().forEach(e => pSpell(e, 1, 'bliksem', 'Ketenbliksem')) },
+  winterhand: { n: 'Winterhand', mp: 10, cd: 4, magic: 1, aoe: 1, d: '85% ijs op alle vijanden en verzwakt ze 2 beurten.', use: () => alive().forEach(e => { pSpell(e, .85, 'ijs', 'Winterhand'); if (e.hp > 0) addSt(e, 'zwak', 2); }) },
   herstel: { n: 'Herstel', mp: 8, cd: 4, self: 1, d: 'Heelt 35% HP en verwijdert brand, gif, bloeden, nat en olie.', use: () => { healP(stats().maxHp * .35); ['brand', 'gif', 'bloed', 'nat', 'olie'].forEach(k => delete S.p.st[k]); log('Een koel licht trekt door je aderen.'); } },
   magischschild: { n: 'Magisch Schild', mp: 8, cd: 5, self: 1, d: 'Herstelt 60% magisch en 30% fysiek pantser.', use: () => { restoreArm(S.p, 'ma', .6); restoreArm(S.p, 'fa', .3); log('Een koepel van blauw licht sluit zich om je heen.'); } },
   meteoor: { n: 'Meteoor', mp: 20, cd: 6, magic: 1, d: '240% vuur op het doel en 100% op de rest, met brand.', use: (g, t) => { const r = pSpell(g, 2.4, 'vuur', 'Meteoor'); if (g.hp > 0 && !r.noBurn) addSt(g, 'brand', 3, dotPow(t, .4)); alive().filter(e => e !== g).forEach(e => pSpell(e, 1, 'vuur', 'Inslag')); } },
@@ -407,21 +407,21 @@ Object.assign(SK, {
   kettingreactie: { n: 'Kettingreactie', mp: 12, cd: 4, aoe: 1, stat: 'dex', d: '95% vuur op alle vijanden, met brand. Verwoestend op olie en gif.', use: (g, t) => alive().forEach(e => { const r = pSpell(e, .95, 'vuur', 'Kettingreactie', { stat: 'dex' }); if (e.hp > 0 && !r.noBurn) addSt(e, 'brand', 2, dotPow(t, .3)); }) },
   transmutatie: { n: 'Transmutatie', mp: 8, cd: 5, self: 1, stat: 'dex', d: 'Zet je negatieve effecten om in genezing: 10% HP per verwijderd effect (minstens 10%).', use: () => { let n = 0; for (const k of ['brand', 'gif', 'bloed', 'nat', 'olie', 'zwak', 'kwetsbaar', 'verblind']) if (S.p.st[k]) { delete S.p.st[k]; n++; } const v = healP(stats().maxHp * .1 * Math.max(1, n)); log(`Je zet ${n} kwaal${n === 1 ? '' : 'en'} om in leven (+${v} HP).`); } },
   // Storm en Stoom (Intelligentie)
-  windstoot: { n: 'Windstoot', mp: 4, cd: 0, magic: 1, d: '105% wind. Slaat neer als het magisch pantser op is.', use: (g) => { pSpell(g, 1.05, 'wind', 'Windstoot'); if (g.hp > 0) tryCC(g, 'neergeslagen', 1, 'ma'); } },
+  windstoot: { n: 'Windstoot', mp: 4, cd: 0, magic: 1, d: '95% wind. Slaat neer als het magisch pantser op is.', use: (g) => { pSpell(g, .95, 'wind', 'Windstoot'); if (g.hp > 0) tryCC(g, 'neergeslagen', 1, 'ma'); } },
   stoomwolk: { n: 'Stoomwolk', mp: 6, cd: 3, aoe: 1, magic: 1, d: '50% vuur op alle vijanden; ze worden nat en verblind (2).', use: () => alive().forEach(e => { pSpell(e, .5, 'vuur', 'Stoomwolk'); if (e.hp > 0) { addSt(e, 'nat', 2); addSt(e, 'verblind', 2); } }) },
   stoomlans: { n: 'Stoomlans', mp: 7, cd: 2, magic: 1, d: '130% vuur. Op natte doelen ontstaat stoom: het doel wordt verblind.', use: (g) => pSpell(g, 1.3, 'vuur', 'Stoomlans') },
   rugwind: { n: 'Rugwind', mp: 5, cd: 4, self: 1, d: '+50% ontwijken (2) en versterkt (2).', use: () => { addSt(S.p, 'ontwijk', 2); addSt(S.p, 'versterkt', 2); log('De wind draait in je rug.'); } },
   vacuum: { n: 'Vacuüm', mp: 8, cd: 3, magic: 1, d: '100% wind. Haalt versterkt en ontwijken weg bij het doel.', use: (g) => { ['versterkt', 'ontwijk'].forEach(k => delete g.st[k]); pSpell(g, 1, 'wind', 'Vacuüm'); } },
-  wervelstorm: { n: 'Wervelstorm', mp: 12, cd: 4, aoe: 1, magic: 1, d: '90% wind op alle vijanden; slaat neer wie geen magisch pantser meer heeft.', use: () => alive().forEach(e => { pSpell(e, .9, 'wind', 'Wervelstorm'); if (e.hp > 0) tryCC(e, 'neergeslagen', 1, 'ma'); }) },
+  wervelstorm: { n: 'Wervelstorm', mp: 12, cd: 4, aoe: 1, magic: 1, d: '80% wind op alle vijanden; slaat neer wie geen magisch pantser meer heeft.', use: () => alive().forEach(e => { pSpell(e, .8, 'wind', 'Wervelstorm'); if (e.hp > 0) tryCC(e, 'neergeslagen', 1, 'ma'); }) },
   orkaan: { n: 'Orkaan', mp: 18, cd: 6, aoe: 1, magic: 1, d: 'Drie windvlagen van 70% op alle vijanden.', use: () => { for (let i = 0; i < 3; i++) alive().forEach(e => pSpell(e, .7, 'wind', 'Orkaan')); } },
   // Necromantie (Intelligentie)
-  botsplinter: { n: 'Botsplinter', mp: 4, cd: 0, magic: 1, d: '130% fysiek (spreukkracht) en bloeden (2).', use: (g, t) => { pSpell(g, 1.3, 'fys', 'Botsplinter'); if (g.hp > 0) addSt(g, 'bloed', 2, dotPow(t, .3)); } },
-  aderlaten: { n: 'Aderlaten', mp: 6, cd: 2, magic: 1, d: '115% arcaan; je heelt 50% van de toegebrachte schade.', use: (g) => { const r = pSpell(g, 1.15, 'arcaan', 'Aderlaten'); healP(r.total * .5); } },
+  botsplinter: { n: 'Botsplinter', mp: 4, cd: 0, magic: 1, d: '115% fysiek (spreukkracht) en bloeden (2).', use: (g, t) => { pSpell(g, 1.15, 'fys', 'Botsplinter'); if (g.hp > 0) addSt(g, 'bloed', 2, dotPow(t, .3)); } },
+  aderlaten: { n: 'Aderlaten', mp: 6, cd: 2, magic: 1, d: '105% arcaan; je heelt 40% van de toegebrachte schade.', use: (g) => { const r = pSpell(g, 1.05, 'arcaan', 'Aderlaten'); healP(r.total * .4); } },
   doodopwekken: { n: 'Doden Opwekken', mp: 8, cd: 3, self: 1, summon: 1, d: 'Wekt een skelet op uit een lijk (4 beurten). Zonder lijk kost het 15% van je HP en blijft het 3 beurten.', use: () => { if (S.c.corpses > 0) { S.c.corpses--; summon('skelet', 4); } else { S.p.hp = Math.max(1, S.p.hp - Math.round(stats().maxHp * .15)); summon('skelet', 3); } } },
   lijkexplosie: { n: 'Lijkexplosie', mp: 6, cd: 2, aoe: 1, magic: 1, req: () => S.c.corpses > 0, d: 'Vereist een lijk. 140% fysiek op alle vijanden.', use: () => { S.c.corpses--; log('Een lijk barst open.'); alive().forEach(e => pSpell(e, 1.4, 'fys', 'Lijkexplosie')); } },
   vervalvloek: { n: 'Vloek van Verval', mp: 7, cd: 3, magic: 1, d: '60% arcaan, zwaar gif (4) en verzwakt (2).', use: (g, t) => { pSpell(g, .6, 'arcaan', 'Vloek van Verval'); if (g.hp <= 0) return; addSt(g, 'gif', 4, dotPow(t, .6)); addSt(g, 'zwak', 2); log(`${g.n} begint te rotten.`); } },
   dodenpantser: { n: 'Dodenpantser', mp: 8, cd: 5, self: 1, d: 'Herstelt 50% fysiek pantser, +10% per lijk op het veld.', use: () => { restoreArm(S.p, 'fa', Math.min(1, .5 + .1 * S.c.corpses)); log('Botten kruipen over je schouders en vormen een harnas.'); } },
-  zielenoogst: { n: 'Zielenoogst', mp: 14, cd: 5, aoe: 1, magic: 1, d: '115% arcaan op alle vijanden; je heelt 8% HP per geraakte vijand.', use: () => { const a = alive(); a.forEach(e => pSpell(e, 1.15, 'arcaan', 'Zielenoogst')); healP(stats().maxHp * .08 * a.length); } },
+  zielenoogst: { n: 'Zielenoogst', mp: 14, cd: 5, aoe: 1, magic: 1, d: '115% arcaan op alle vijanden; je heelt 5% HP per geraakte vijand.', use: () => { const a = alive(); a.forEach(e => pSpell(e, 1.15, 'arcaan', 'Zielenoogst')); healP(stats().maxHp * .05 * a.length); } },
   // Oproepen (Intelligentie)
   geestwolf: { n: 'Geestwolf', mp: 8, cd: 4, self: 1, summon: 1, d: 'Roept een geestwolf op (3 beurten). Zijn beten kunnen laten bloeden.', use: () => summon('geestwolf', 3) },
   bindendeschicht: { n: 'Bindende Schicht', mp: 4, cd: 0, magic: 1, d: '100% arcaan; je oproepingen worden versterkt.', use: (g) => { pSpell(g, 1, 'arcaan', 'Bindende Schicht'); S.c.allies.forEach(a => addSt(a, 'versterkt', 2)); } },
@@ -465,11 +465,11 @@ Object.assign(CLASSES.alchemist, { sc: 'alch' }); Object.assign(CLASSES.stormroe
 for (const k in CLASSES) CLASSES[k].pool = SCHOOL_SKILLS[CLASSES[k].sc].filter(id => !CLASSES[k].skills.includes(id));
 
 const SUMMONS = {
-  skelet: { n: 'Opgewekt skelet', hp: 1.0, dmg: .3, el: 'fys', fa: .6, ma: .2 },
-  geestwolf: { n: 'Geestwolf', hp: .8, dmg: .28, el: 'fys', fa: .3, ma: .3, st: 'bloed' },
-  vuurelementaal: { n: 'Vuurelementaal', hp: .9, dmg: .33, el: 'vuur', fa: .2, ma: .8, st: 'brand' },
-  ijsgolem: { n: 'IJsgolem', hp: 1.5, dmg: .22, el: 'ijs', fa: 1.2, ma: .8, taunt: 1 },
-  sterrenwachter: { n: 'Sterrenwachter', hp: 1.2, dmg: .55, el: 'arcaan', fa: .8, ma: .8 }
+  skelet: { n: 'Opgewekt skelet', hp: 1.0, dmg: .34, el: 'fys', fa: .6, ma: .2 },
+  geestwolf: { n: 'Geestwolf', hp: .8, dmg: .32, el: 'fys', fa: .3, ma: .3, st: 'bloed' },
+  vuurelementaal: { n: 'Vuurelementaal', hp: .9, dmg: .38, el: 'vuur', fa: .2, ma: .8, st: 'brand' },
+  ijsgolem: { n: 'IJsgolem', hp: 1.5, dmg: .26, el: 'ijs', fa: 1.2, ma: .8, taunt: 1 },
+  sterrenwachter: { n: 'Sterrenwachter', hp: 1.2, dmg: .62, el: 'arcaan', fa: .8, ma: .8 }
 };
 
 // ---------- verhaal: stadjes, visioenen, eindes ----------
@@ -722,7 +722,7 @@ const saveMeta = () => store.set(META_KEY, M);
 const save = () => { if (S) store.set(RUN_KEY, S); };
 const hasB = k => !!(S && S.bless.includes(k));
 const curL = () => 1 + S.reg * 3 + Math.floor(S.step / 3);
-const xpNeed = l => Math.round(10 * Math.pow(l, 1.5));
+const xpNeed = l => Math.round(10 * Math.pow(l, 1.5) * (1 + Math.max(0, l - 6) * .12));
 const nm = ent => ent === S.p ? 'Jij' : ent.n;
 
 function unlockLore(id) { if (!M.lore.includes(id)) { M.lore.push(id); saveMeta(); return true; } return false; }
@@ -745,6 +745,8 @@ function stats() {
   t.maxHp = Math.round((32 + t.vit * 5 + p.lvl * 6 + t.hp + (p.sign === 'beer' ? 20 : 0)) * (t.fx.koning ? .9 : 1) * (hasB('broos') ? .8 : 1));
   t.maxMp = 12 + t.int * 3 + p.lvl * 2 + t.mp + (p.sign === 'uil' ? 15 : 0);
   t.mpr += (p.sign === 'uil' ? 1 : 0) + (hasB('atronach') ? 2 : 0);
+  // Spreukklassen: +1 MP-herstel per 10 punten in hun spreukstat (Alchemist: Behendigheid, overige: Intelligentie).
+  const cs = CLASSES[p.cls].sc; if (['elem', 'storm', 'necro', 'oproep', 'alch'].includes(cs)) t.mpr += Math.floor(t[cs === 'alch' ? 'dex' : 'int'] / 10);
   t.crit = Math.min(75, Math.round(t.crit + t.dex * .5));
   t.dodge = Math.min(45, Math.round(t.dodge + t.dex * .5));
   const am = (t.fx.colossus ? 1.4 : 1) * (hasB('toren') ? 1.25 : 1);
@@ -753,7 +755,8 @@ function stats() {
   t.spell = spPow(t, 'int');
   return t;
 }
-function spPow(t, st) { return Math.round(2 + t[st] * 1 + S.p.lvl * 1.2 + t.sp * .8); }
+// Spreukkracht groeit net als wapenschade multiplicatief met de stat. Zonder spreukkracht op het wapen telt de helft van de wapenschade als basis.
+function spPow(t, st) { const base = 6 + S.p.lvl * 1.5 + Math.max(t.sp, (t.wmin + t.wmax) / 4); return Math.round(base * (1 + t[st] * .033)); }
 function clampVitals() { const t = stats(); S.p.hp = Math.min(S.p.hp, t.maxHp); S.p.mp = Math.min(S.p.mp, t.maxMp); }
 
 function gainXp(n, lines) {
@@ -958,7 +961,9 @@ function target() { const a = alive(); return a.find(e => e.uid === S.c.target) 
 function mkEnemy(id, L, kind) {
   const champ = id.startsWith('champ:'); if (champ) id = id.slice(6);
   const b = EN[id], D = DIFFS[S.diff];
-  const bf = b.boss ? .72 : 1, hm = (1 + .38 * (L - 1)) * D.hp * bf, dm = (1 + .2 * (L - 1)) * D.dm * (b.boss ? 1.08 : 1), am = (1 + .35 * (L - 1)) * Math.sqrt(D.hp) * (b.boss ? .8 : 1);
+  // Moeilijkheid weegt geleidelijk zwaarder per regio: 40% in het Grijswoud, 100% in Askroon.
+  const ramp = .4 + .15 * S.reg, dH = 1 + (D.hp - 1) * ramp, dD = 1 + (D.dm - 1) * (.3 + .175 * S.reg);
+  const bf = b.boss ? .72 : 1, hm = (1 + .38 * (L - 1)) * dH * bf, dm = (1 + .2 * (L - 1)) * dD * (b.boss ? 1.08 : 1), am = (1 + .35 * (L - 1)) * Math.sqrt(dH) * (b.boss ? .8 : 1);
   const e = { id, n: b.n, L, uid: S.uid++, maxHp: Math.round(b.hp * hm), fa: Math.round(b.fa * am), ma: Math.round(b.ma * am), dmg: [b.dmg[0] * dm, b.dmg[1] * dm], dmgMul: 1, st: {}, intent: null, forced: null, boss: !!b.boss, elite: !!(b.elite || kind === 'elite'), traits: [], regen: b.regen || 0, vamp: 0, fiery: false, xp: Math.round(b.xp * (1 + .35 * (L - 1))), gold: Math.round(R(b.gold[0], b.gold[1]) * (1 + .3 * (L - 1))) };
   let nt = 0;
   if (!b.boss) { if (chance(D.trait)) nt++; if (e.elite && S.diff >= 3) nt++; } else if (S.diff >= 5) nt = 1;

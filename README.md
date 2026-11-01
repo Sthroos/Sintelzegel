@@ -19,3 +19,16 @@ Voortgang (tocht, Boekerij, relikwieën, ontgrendelde moeilijkheden) staat in `l
 ## Externe bronnen
 
 Alleen Google Fonts (IM Fell English SC, Alegreya). Zonder internet valt het spel terug op systeemlettertypen.
+
+## Balanssimulatie
+
+`sim/` bevat een bot die de spellogica uit `index.html` in Node draait (zonder browser):
+
+```sh
+cd sim
+python3 -c "import json; json.dump([{'cls':'magier','diff':1,'strat':'slim','build':'focus'}]*50, open('jobs.json','w'))"
+node sim.js ../index.html jobs.json out.json
+python3 analyse.py out.json
+```
+
+Strategieën: `simpel` (sterkste spreuk), `slim` (combinaties, onderbreken, verdedigen, oproepingen), `kruis` (slim + spreuken uit andere scholen). Builds: `focus` (alles in hoofdstat) of `bal` (1 op 3 punten in Vitaliteit).
