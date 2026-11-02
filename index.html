@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.13'; // ophogen bij elke publicatie
+const VERSION = '0.14'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -184,6 +184,7 @@ const SLOTS = ['wapen', 'helm', 'harnas', 'amulet', 'ring'];
 const SLOTN = { wapen: 'Wapen', helm: 'Helm', harnas: 'Harnas', amulet: 'Amulet', ring: 'Ring', tome: 'Foliant' };
 const RAR = ['Gewoon', 'Ongewoon', 'Zeldzaam', 'Episch', 'Legendarisch', 'Relikwie'];
 const REG_LEN = 6;
+const LIJK_MAX = 4; // lijken blijven bewaard tussen gevechten
 const BAG_MAX = 14;
 
 const WEAP = [
@@ -417,10 +418,10 @@ Object.assign(SK, {
   // Necromantie (Intelligentie)
   botsplinter: { n: 'Botsplinter', mp: 4, cd: 0, magic: 1, d: '115% fysiek (spreukkracht) en bloeden (2).', use: (g, t) => { pSpell(g, 1.15, 'fys', 'Botsplinter'); if (g.hp > 0) addSt(g, 'bloed', 2, dotPow(t, .3)); } },
   aderlaten: { n: 'Aderlaten', mp: 6, cd: 2, magic: 1, d: '105% arcaan; je heelt 40% van de toegebrachte schade.', use: (g) => { const r = pSpell(g, 1.05, 'arcaan', 'Aderlaten'); healP(r.total * .4); } },
-  doodopwekken: { n: 'Doden Opwekken', mp: 8, cd: 3, self: 1, summon: 1, d: 'Wekt een skelet op uit een lijk (4 beurten). Zonder lijk kost het 15% van je HP en blijft het 3 beurten.', use: () => { if (S.c.corpses > 0) { S.c.corpses--; summon('skelet', 4); } else { S.p.hp = Math.max(1, S.p.hp - Math.round(stats().maxHp * .15)); summon('skelet', 3); } } },
-  lijkexplosie: { n: 'Lijkexplosie', mp: 6, cd: 2, aoe: 1, magic: 1, req: () => S.c.corpses > 0, d: 'Vereist een lijk. 140% fysiek op alle vijanden.', use: () => { S.c.corpses--; log('Een lijk barst open.'); alive().forEach(e => pSpell(e, 1.4, 'fys', 'Lijkexplosie')); } },
+  doodopwekken: { n: 'Doden Opwekken', mp: 8, cd: 3, self: 1, summon: 1, d: 'Wekt een skelet op uit een lijk uit je voorraad (3 beurten). Zonder lijk kost het 15% van je HP en blijft het 2 beurten.', use: () => { if (S.p.lijken > 0) { S.p.lijken--; summon('skelet', 3); } else { S.p.hp = Math.max(1, S.p.hp - Math.round(stats().maxHp * .15)); summon('skelet', 2); } } },
+  lijkexplosie: { n: 'Lijkexplosie', mp: 9, cd: 3, aoe: 1, magic: 1, req: () => S.p.lijken > 0, d: 'Kost een lijk uit je voorraad. 120% fysiek op alle vijanden.', use: () => { S.p.lijken--; log('Een lijk barst open.'); alive().forEach(e => pSpell(e, 1.2, 'fys', 'Lijkexplosie')); } },
   vervalvloek: { n: 'Vloek van Verval', mp: 7, cd: 3, magic: 1, d: '60% arcaan, zwaar gif (4) en verzwakt (2).', use: (g, t) => { pSpell(g, .6, 'arcaan', 'Vloek van Verval'); if (g.hp <= 0) return; addSt(g, 'gif', 4, dotPow(t, .6)); addSt(g, 'zwak', 2); log(`${g.n} begint te rotten.`); } },
-  dodenpantser: { n: 'Dodenpantser', mp: 8, cd: 5, self: 1, d: 'Herstelt 50% fysiek pantser, +10% per lijk op het veld.', use: () => { restoreArm(S.p, 'fa', Math.min(1, .5 + .1 * S.c.corpses)); log('Botten kruipen over je schouders en vormen een harnas.'); } },
+  dodenpantser: { n: 'Dodenpantser', mp: 8, cd: 5, self: 1, d: 'Herstelt 50% fysiek pantser, +10% per lijk in je voorraad.', use: () => { restoreArm(S.p, 'fa', Math.min(1, .5 + .1 * S.p.lijken)); log('Botten kruipen over je schouders en vormen een harnas.'); } },
   zielenoogst: { n: 'Zielenoogst', mp: 14, cd: 5, aoe: 1, magic: 1, d: '115% arcaan op alle vijanden; je heelt 5% HP per geraakte vijand.', use: () => { const a = alive(); a.forEach(e => pSpell(e, 1.15, 'arcaan', 'Zielenoogst')); healP(stats().maxHp * .05 * a.length); } },
   // Oproepen (Intelligentie)
   geestwolf: { n: 'Geestwolf', mp: 8, cd: 4, self: 1, summon: 1, d: 'Roept een geestwolf op (3 beurten). Zijn beten kunnen laten bloeden.', use: () => summon('geestwolf', 3) },
@@ -712,7 +713,7 @@ if (!M || typeof M !== 'object') M = {};
 M = Object.assign({ unlocked: 2, relics: [], lore: [], wins: [0, 0, 0, 0, 0, 0], endings: [], runs: 0, deaths: 0, kills: 0, best: 0 }, M);
 let S = store.get(RUN_KEY);
 if (S && S.v !== 1) S = null;
-if (S) { S.quests = (S.quests || []).map(q => q.until === undefined ? { ...q, until: q.reg, borg: 0, long: false } : q); S.rep = S.rep || 0; S.eliteDone = S.eliteDone || []; S.flags = S.flags || []; S.frags = S.frags || []; S.vis = S.vis || []; if (S.c) { S.c.allies = S.c.allies || []; S.c.corpses = S.c.corpses || 0; } }
+if (S) { S.quests = (S.quests || []).map(q => q.until === undefined ? { ...q, until: q.reg, borg: 0, long: false } : q); S.rep = S.rep || 0; S.eliteDone = S.eliteDone || []; S.p.lijken = S.p.lijken || 0; S.flags = S.flags || []; S.frags = S.frags || []; S.vis = S.vis || []; if (S.c) { S.c.allies = S.c.allies || []; S.c.corpses = S.c.corpses || 0; } }
 let VIEW = S ? 'title' : 'title'; // titelscherm altijd eerst
 let CR = null; // karaktercreatie (niet opgeslagen)
 let OV = null; // overlay buiten run-state: 'codex'
@@ -943,7 +944,7 @@ function newRun(c) {
   S = {
     v: 1, screen: 'regio', ov: null, diff: c.diff, reg: 0, step: 0, choices: null, ctx: null, c: null,
     seenEv: [], bless: [], quests: [], rep: 0, eliteDone: [], flags: [], frags: [], vis: [], town: null, gold: 25, uid: 1, pickOpts: null, kills: 0,
-    p: { name: c.name, cls: c.cls, sign: c.sign, lvl: 1, xp: 0, pts: 0, picks: 0, ...cls.stats, hp: 1, mp: 1, fa: 0, ma: 0, st: {}, eq: { wapen: null, helm: null, harnas: null, amulet: null, ring: null }, bag: [], cons: { heal: 3, mana: 1, loper: 1 }, skills: cls.skills.slice(), revive: c.sign === 'feniks' ? 1 : 0 }
+    p: { name: c.name, cls: c.cls, sign: c.sign, lvl: 1, xp: 0, pts: 0, picks: 0, ...cls.stats, hp: 1, mp: 1, fa: 0, ma: 0, st: {}, eq: { wapen: null, helm: null, harnas: null, amulet: null, ring: null }, bag: [], cons: { heal: 3, mana: 1, loper: 1 }, skills: cls.skills.slice(), lijken: 0, revive: c.sign === 'feniks' ? 1 : 0 }
   };
   S.p.eq.wapen = genItem({ ilvl: 1, slot: 'wapen', r: 0, base: cls.wk });
   S.p.eq.harnas = genItem({ ilvl: 1, slot: 'harnas', r: 0, base: cls.ak });
@@ -1115,6 +1116,7 @@ function summon(id, turns) {
 function reapAllies() {
   const dead = S.c.allies.filter(a => a.hp <= 0);
   S.c.allies = S.c.allies.filter(a => a.hp > 0);
+  S.p.lijken = Math.min(LIJK_MAX, (S.p.lijken || 0) + dead.filter(a => !a.undead && a.id !== 'skelet').length); // skeletten zijn al botten
   if (!dead.length || !stats().fx.raaf) return;
   for (const d of dead) {
     if (d.undead) continue;
@@ -1154,7 +1156,7 @@ function startFight(ids, o = {}) {
     if (o.est) for (const k in o.est) e.st[k] = { t: o.est[k] + 1, p: k === 'brand' ? Math.round(e.maxHp * .06) : 0 };
     if (hasB('onrust')) e.st.versterkt = { t: 3, p: 0 };
   }
-  S.c = { en, kind, allies: [], corpses: 0, ret: o.ret || null, potUsed: false, turn: 0, cd: {}, log: [], rew: { xp: 0, gold: 0, items: [], lines: [] }, defend: false, potion: false, target: en[0].uid, mantel: false, bonus: o.bonus || 0, sub: null };
+  S.c = { en, kind, allies: [], ret: o.ret || null, potUsed: false, turn: 0, cd: {}, log: [], rew: { xp: 0, gold: 0, items: [], lines: [] }, defend: false, potion: false, target: en[0].uid, mantel: false, bonus: o.bonus || 0, sub: null };
   S.screen = 'combat';
   const b = EN[ids[0].replace('champ:', '')];
   if (b.intro) { log(b.intro, 'boss'); if (b.say && tier() > 0) log(b.say[tier() - 1], 'boss'); }
@@ -1260,7 +1262,7 @@ function reap() {
     e.dead = true; S.kills++; M.kills++;
     const rw = S.c.rew; rw.xp += e.xp; rw.gold += e.gold;
     log(`${e.n} valt.`, 'kill');
-    S.c.corpses++; questHook('kill', e);
+    S.p.lijken = Math.min(LIJK_MAX, (S.p.lijken || 0) + 1); questHook('kill', e);
     if (REGIONS.some(r => r.elite === e.id) && !S.eliteDone.includes(e.id)) S.eliteDone.push(e.id);
     const L = e.L;
     if (e.boss) {
@@ -1894,7 +1896,7 @@ function rCombat() {
     ${c.kind !== 'boss' ? '<button class="c small" data-a="flee" style="min-height:36px">Vluchten (BEH-worp)</button>' : ''}`;
   }
   const necro = S.p.skills.some(id => SK[id].sc === 'necro');
-  const als = c.allies.length || necro ? `<div class="sec">AAN JOUW ZIJDE${necro ? ` · lijken: ${c.corpses}` : ''}</div><div class="enemies">${c.allies.map(a => `<div class="foe ally"><div class="top"><b>${a.n}</b><span class="small mute">nog ${a.turns} beurt${a.turns === 1 ? '' : 'en'}</span></div><div class="bars">${bar(a.hp, a.maxHp, 'var(--good)')}</div><div class="nums"><span>HP ${a.hp}/${a.maxHp}</span><span>fysiek ${a.fa}</span><span>magisch ${a.ma}</span></div>${Object.keys(a.st).length ? `<div class="chips">${chips(a.st)}</div>` : ''}</div>`).join('')}</div>` : '';
+  const als = c.allies.length || necro ? `<div class="sec">AAN JOUW ZIJDE${necro ? ` · lijken: ${S.p.lijken}/${LIJK_MAX}` : ''}</div><div class="enemies">${c.allies.map(a => `<div class="foe ally"><div class="top"><b>${a.n}</b><span class="small mute">nog ${a.turns} beurt${a.turns === 1 ? '' : 'en'}</span></div><div class="bars">${bar(a.hp, a.maxHp, 'var(--good)')}</div><div class="nums"><span>HP ${a.hp}/${a.maxHp}</span><span>fysiek ${a.fa}</span><span>magisch ${a.ma}</span></div>${Object.keys(a.st).length ? `<div class="chips">${chips(a.st)}</div>` : ''}</div>`).join('')}</div>` : '';
   setUI(`<div class="enemies">${foes}</div>${als}<div class="log" id="log">${logH}</div>`, act);
   const lg = $('#log'); lg.scrollTop = lg.scrollHeight; $('#main').scrollTop = 0;
 }
@@ -2051,7 +2053,7 @@ function rChar() {
   <div class="sec">COMBINATIES</div><div class="card small">
     Nat + bliksem: +50% en verdoofd · Nat + ijs: bevroren · Vuur op nat: stoom (75% schade, verblind)<br>
     Olie + vuur: ontploffing + brand · Gif + vuur: het gif ontbrandt · Bevroren + fysiek: verbrijzeld (+50%)<br>
-    Verblind: 50% kans om te missen · Wind slaat neer zonder magisch pantser · Lijken voeden necromantie<br>Verdoven, bevriezen en neerslaan werken pas als het passende pantser op is, en onderbreken opgeladen aanvallen.
+    Verblind: 50% kans om te missen · Wind slaat neer zonder magisch pantser<br>Lijken: elke gevallen vijand of oproeping levert er één op; je bewaart er maximaal 4 tussen gevechten<br>Verdoven, bevriezen en neerslaan werken pas als het passende pantser op is, en onderbreken opgeladen aanvallen.
   </div>`, `<button class="c" data-a="ovclose">Sluiten</button>`);
 }
 function rSkillPick() {
