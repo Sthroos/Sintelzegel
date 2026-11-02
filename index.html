@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.12'; // ophogen bij elke publicatie
+const VERSION = '0.13'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -593,7 +593,7 @@ const SPOTS = [
       { t: 'Blijf beneden', ok: () => ({ txt: 'De berg loopt niet weg.' }) }] },
     { t: 'De ijsgrot', x: 'In een grot onder de muren zit iets in het ijs gevangen. Iets dat glanst.', c: [
       { t: 'Hak het ijs open', chk: ['str', 13], ok: () => chance(.25) ? { txt: 'Het ijs barst en geeft zijn schat prijs.', relic: 1 } : { txt: 'Een oud wapenstuk, nog scherp.', item: 2 }, no: () => ({ txt: 'Een ijspegel valt van het plafond.', hp: -.15 }) },
-      { t: 'Smelt het met magie (10 MP)', req: () => S.p.mp >= 10, ok: () => { S.p.mp -= 10; return { txt: 'Het ijs druipt weg.', item: 2 }; } }] }
+      { t: 'Smelt het met magie (10 MP)', chk: ['int', 13], req: () => S.p.mp >= 10, ok: () => { S.p.mp -= 10; return chance(.25) ? { txt: 'Het ijs druipt weg en geeft zijn schat prijs.', relic: 1 } : { txt: 'Het ijs druipt weg. Een oud wapenstuk, nog scherp.', item: 2 }; }, no: () => { S.p.mp -= 10; return { txt: 'Het ijs smelt aan de buitenkant en bevriest meteen weer. Je mana is op, de schat zit er nog.' }; } }] }
   ],
   [
     { t: 'Het verlaten klooster', x: 'Een klooster van de Orde, verlaten sinds de as begon te vallen. De bibliotheek staat nog.', c: [
