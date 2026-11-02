@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.15'; // ophogen bij elke publicatie
+const VERSION = '0.16'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -1332,6 +1332,12 @@ function usePotion(k) {
 }
 function win() {
   const c = S.c, rw = c.rew, lines = [];
+  // Laatste baas: geen buit of niveaus meer, direct door naar de keuze en de epiloog. Relikwieën tellen wel voor de verzameling.
+  if (c.kind === 'boss' && S.reg === 4) {
+    for (const it of rw.items) if (it && it.relic) claimRelic(it);
+    S.p.st = {}; S.c = null; TOAST = null;
+    return endChoice();
+  }
   const g = Math.round(rw.gold * goldMul());
   S.gold += g;
   if (g) lines.push(`${g} goud`);
@@ -1996,7 +2002,7 @@ function rEinde() {
       vernietig: `<h1>De Dove Bron</h1><p class="prose">Je knijpt. Het hart breekt als een ei van obsidiaan. Overal in Valdoren doven de vuren die niet van deze wereld zijn. Het teken in je hand verbleekt tot een litteken. In Laatste Licht gaat de lamp uit. Ergens in Valdoren valt Zuster Ilse glimlachend tot stof. Er zal nooit meer magie zijn in Valdoren. Ook nooit meer een Holle Koning.</p>`,
       naam: `<h1>De Zevende</h1><p class="prose">Je spreekt haar naam uit: <em>Veridane</em>. Het hart in je handen wordt warm, dan heet, dan licht. Wat er van Morrath over is kijkt op. "Zo heette ze," zegt hij zacht. Je legt het hart terug in de Bron, niet als slot, maar als wond die mag helen. Het zegel sluit zich voorgoed. De Zevende Wachter heeft weer een naam, en jij draagt hem verder.</p>${c.d >= 5 ? '<p class="prose">Het Ledige trekt zich terug als een getij. Het heeft jouw gezicht niet meer. In de stilte daarna hoor je, heel ver weg, een wolvin huilen, een klok onder water luiden, en iemand lachen. Het is de eerste keer in drieduizend jaar dat de Zevende lacht.</p>' : ''}`
     };
-    txt = E[c.end || 'herstel'] + (c.d >= 4 ? `<div class="lore">${LORE.l14[1]}</div>` : '') + (c.d <= 1 ? '<p class="small mute">Op Veteraan en hoger hoor je meer van dit verhaal en kun je anders kiezen.</p>' : `<p class="small mute">Eindes ontdekt: ${M.endings.length}/4</p>`);
+    txt = '<div class="mute small" style="letter-spacing:.15em">EPILOOG</div>' + E[c.end || 'herstel'] + (c.d >= 4 ? `<div class="lore">${LORE.l14[1]}</div>` : '') + (c.d <= 1 ? '<p class="small mute">Op Veteraan en hoger hoor je meer van dit verhaal en kun je anders kiezen.</p>' : `<p class="small mute">Eindes ontdekt: ${M.endings.length}/4</p>`);
   }
   setUI(`${txt}
   ${c.win && c.unlockedNow ? `<div class="lvlup">Nieuwe moeilijkheid ontgrendeld: ${DIFFS[Math.min(5, c.d + 1)].n}</div>` : ''}
