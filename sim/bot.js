@@ -154,7 +154,7 @@ function runBot(job) {
       continue;
     }
     if (sc === 'buit') { ACT.buitnext(); continue; }
-    if (sc === 'keuze') { const ok = Object.keys(ENDINGS).filter(k => { const E = ENDINGS[k]; return !E.need || (E.need === 'frags' ? S.frags.length >= 4 : S.flags.includes(E.need)); }); ACT.ending(ok[ok.length - 1]); continue; }
+    if (sc === 'keuze') { const ok = Object.keys(ENDINGS).filter(k => { const E = ENDINGS[k]; return !E.need || (E.need === 'frags' ? (M.frags.length >= 4 && S.diff >= 3) : S.flags.includes(E.need)); }); ACT.ending(ok[ok.length - 1]); continue; }
     if (sc === 'event') { if (!S.ctx.res) resolveChoice(bestChoice(getEvent(S.ctx.id))); else eventContinue(); continue; }
     if (sc === 'kist') {
       const c = S.ctx, t = stats();

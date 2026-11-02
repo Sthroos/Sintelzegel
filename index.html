@@ -139,7 +139,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 function wpick(o) { let tot = 0; for (const k in o) tot += o[k]; let r = Math.random() * tot; for (const k in o) { r -= o[k]; if (r <= 0) return k; } return Object.keys(o)[0]; }
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const VERSION = '0.16'; // ophogen bij elke publicatie
+const VERSION = '0.17'; // ophogen bij elke publicatie
 const META_KEY = 'sintelzegel_meta_v1', RUN_KEY = 'sintelzegel_run_v1';
 // localStorage kan ontbreken of gooien (sandbox/privémodus): spel blijft dan gewoon speelbaar zonder opslag.
 const store = {
@@ -152,10 +152,10 @@ const store = {
 const DIFFS = [
   { n: 'Pelgrim', d: 'Voor wie vooral het verhaal wil beleven. Zwakkere vijanden.', hp: .75, dm: .7, loot: 0, trait: 0, camp: 1.2 },
   { n: 'Avonturier', d: 'De bedoelde ervaring.', hp: 1, dm: 1, loot: 0, trait: .08, camp: 1 },
-  { n: 'Veteraan', d: 'Sterkere vijanden, vaker met eigenschappen. Betere buit. Nieuwe verhaallaag: visioenen van de Zevende, nieuwe gesprekken en andere eindes.', hp: 1.5, dm: 1.3, loot: 1, trait: .3, camp: .9 },
-  { n: 'Meester', d: 'Elites dragen twee eigenschappen. Kampvuren helen minder. Veel betere buit. Verhaallaag van Veteraan.', hp: 2, dm: 1.55, loot: 2, trait: .55, camp: .75 },
-  { n: 'Legende', d: 'Bijna elke vijand heeft eigenschappen. Derde verhaallaag: herinneringen van Morrath, de naam van de Zevende en het ware einde.', hp: 2.4, dm: 1.75, loot: 3, trait: .8, camp: .6 },
-  { n: 'Eeuwige Nacht', d: 'Alles wil je dood. De Holle Koning heeft een laatste gedaante.', hp: 2.8, dm: 1.95, loot: 4, trait: 1, camp: .5 }
+  { n: 'Veteraan', d: 'Sterkere vijanden, vaker met eigenschappen. Betere buit. Verhaallaag: de Zevende Wachter. Visioenen, nieuwe gesprekken en andere eindes.', hp: 1.5, dm: 1.3, loot: 1, trait: .3, camp: .9 },
+  { n: 'Meester', d: 'Elites dragen twee eigenschappen. Kampvuren helen minder. Veel betere buit. Verhaallaag: de Orde. Wat de zusters verzwijgen, en de eerste stukken van een naam.', hp: 2, dm: 1.55, loot: 2, trait: .55, camp: .75 },
+  { n: 'Legende', d: 'Bijna elke vijand heeft eigenschappen. Verhaallaag: Morrath. Zijn herinneringen en de laatste stukken van de naam.', hp: 2.4, dm: 1.75, loot: 3, trait: .8, camp: .6 },
+  { n: 'Eeuwige Nacht', d: 'Alles wil je dood. Verhaallaag: het Ledige. Wat er in de borst van de koning woont, en het ware einde.', hp: 2.8, dm: 1.95, loot: 4, trait: 1, camp: .5 }
 ];
 
 const CLASSES = {
@@ -615,13 +615,97 @@ EN.priores.say = ['"Jij," fluistert ze. "Zij stond naast mij op de muur. Ze keek
 EN.vorstbaard.say = ['"Je hebt haar ogen. Zij keek ook toe, op de brug."', '"Mijn dochter leeft nog, in het ijs onder het fort in de pas. Ga naar haar toe, als je wilt weten wat eeuwig leven kost."'];
 EN.colossus.say = ['"SLEUTELDRAGER HERKEND. TOEGANG... GEWEIGERD."', '"HONDERDDUIZEND STEMMEN IN DE KERN. ZE VRAGEN OM STILTE. GEEF HUN STILTE."'];
 EN.morrath1.say = ['"Ze hebben je niets verteld, hè? De Orde niet, en zij al helemaal niet. Mij vertelde ze ook niets."', '"Ik weet wat je in de visioenen zag. Ik was erbij. Versla me, als je kunt. Ik kan het zelf niet meer."'];
-const tier = () => S.diff <= 1 ? 0 : S.diff <= 3 ? 1 : 2;
+// ---------- verhaallagen 2 (Orde, Meester) en 4 (Het Ledige, Eeuwige Nacht) ----------
+// Lagen: 0 kroniek (Pelgrim/Avonturier), 1 de Zevende (Veteraan), 2 de Orde (Meester), 3 Morrath (Legende), 4 het Ledige (Eeuwige Nacht)
+Object.assign(LORE, {
+  v0o: ['Archief: de eerste zusters', 'De eerste zusters vinden haar aan de rand van het Grijswoud, zonder wolvin. "Schrap mijn naam," zegt de Zevende. "Uit elk boek, van elke steen, uit elk lied. En als ik jullie ooit zelf vraag hem terug te geven, weiger dan."'],
+  v1o: ['Archief: de nieuwe kroniek', 'De zusters schrijven de kroniek van Merrow opnieuw. In de nieuwe versie roept Morrath de zee op. "Zo is het makkelijker," zegt de oudste zuster. "Een vijand onthoud je beter dan een keuze."'],
+  v2o: ['Archief: de grafsteen', 'Een jonge zuster krast de naam van de Zesde van zijn grafsteen en huilt erbij. "Hij kende haar naam," zegt de oudste. "Alles wat haar naam kent, moet zwijgen. Ook de doden."'],
+  v3o: ['Archief: de weigering', 'In Aeldrin vragen de zusters de ingenieurs om de naam te vergeten. De ingenieurs weigeren. Ze bouwen de naam in hun machines, in een taal die na hen niemand meer spreekt.'],
+  v4o: ['Archief: de eerste lamp', 'De Zevende steekt zelf de eerste lamp aan, aan de rand van de as. "Voed hem met mijn naam," zegt ze tegen de zusters. "Dan dooft hij nooit, en hoeven jullie hem nooit uit te spreken." Daarna loopt ze de as in. Niemand ziet haar terugkomen.'],
+  v0l: ['Het Ledige spreekt: de wolvin', 'Er was een wolvin die mij bij een naam riep. Ik noemde haar Moeder, voor de grap. Hoe noemde zij mij? Ik weet het niet meer. Ik weet alleen nog dat ze huilde toen ik wegging.'],
+  v1l: ['Het Ledige spreekt: het water', 'Ik heb een stad laten verdrinken. Ik weet nog precies hoe het water klonk. Ik weet niet meer wie ik was toen ik dat besloot.'],
+  v2l: ['Het Ledige spreekt: de brug', 'Op de brug keek ik toe, zodat ik het later zou kunnen vergeten. Het werkte. Ik ben alles vergeten, behalve dat.'],
+  v3l: ['Het Ledige spreekt: de machines', 'Honderdduizend stemmen in de machines. Ze kennen allemaal mijn naam. Ze mogen hem niet zeggen. Dat was de prijs die ik vroeg.'],
+  v4l: ['Het Ledige spreekt: de borst', 'Het is warm in zijn borst. Hij praat tegen me, al drieduizend jaar. Hij noemt me bij een naam die ik niet herken. Ik heb honger naar die naam. Ik heb zo\'n honger.'],
+  orde: ['De Orde van de Zeven Stralen', 'De Orde werd niet opgericht om de Zevende te eren, maar om haar te laten verdwijnen. Op haar eigen bevel. De zusters wissen haar naam uit waar die opduikt, en bewaken de lamp die erop brandt. Ze weten niet meer precies waarom. Alleen dat ze het moeten.'],
+  abt: ['Wat de abt ontdekte', 'In de laatste aantekeningen van de abt staat één zin, drie keer onderstreept: "Wie zijn naam weggeeft, blijft niet leeg achter. De leegte gaat ergens wonen." Daaronder, in een ander handschrift: "Verbranden."'],
+  naamloze: ['De Naamloze', 'De Zevende stierf niet toen ze het zegel sloot. Ze gaf haar naam weg, en wat overbleef had geen naam en geen grens meer: alleen honger. Het kroop in het enige wat even leeg was als zij: de borst van Morrath. Daar wacht ze. Op iemand met haar teken, en haar naam.'],
+  brief: ['De brief van de koning', '"Aan de erfgenaam. Als je dit leest, heb je bijna alles gezien. Neem mijn kroon, of breek mijn hart. Het maakt me niet meer uit welke. Maar laat me niet nog eens drieduizend jaar wachten. M."']
+});
+LORE.l14[0] = 'Het hart van de koning';
+// visioenen: a = de Zevende, o = de Orde, b = Morrath, l = het Ledige
+const VIS_LAYER = ['', 'a', 'o', 'b', 'l'];
+const VIS_TITLE = { a: 'Visioen', o: 'Uit het archief van de Orde', b: 'Herinnering', l: 'Het Ledige spreekt' };
+function visionFor(reg) {
+  const L = tier();
+  for (let k = 1; k <= L; k++) if (!M.lore.includes('v' + reg + VIS_LAYER[k])) return 'vis' + reg + VIS_LAYER[k];
+  return 'vis' + reg + VIS_LAYER[L];
+}
+// nieuwe stadscènes
+const STORY_NEW = {
+  t0b: { t: 'De put van de koning', x: 'Op de rand van de dorpsput staat, half weggesleten, een kroon gebeiteld. "Gegraven in het pestjaar," zegt een oude vrouw die water haalt. "Op bevel van koning Morrath zelf. Hij droeg de eerste emmer. Daarna dronk hij niet meer, zeggen ze."', c: [
+    { t: 'Lees de inscriptie', chk: ['int', 14], ok: () => ({ txt: 'Onder de kroon staat, in oud Valdorens: "Opdat niemand meer sterft van dorst of ziekte. Ik beloof het." De hand die het schreef beefde.', lore: 'v0b', xp: 40 }), no: () => ({ txt: 'De letters zijn te ver weggesleten.' }) },
+    { t: 'Drink uit de put', ok: () => ({ txt: 'Het water is koud en zuiver. Drieduizend jaar later doet zijn belofte nog wat ze moest doen.', hp: .4, bless: 'heler' }) },
+    { t: 'Gooi een munt in de put (10 goud)', req: () => S.gold >= 10, ok: () => ({ txt: 'De munt valt lang. Heel lang. Dan, van ver beneden: een zucht.', gold: -10, xp: 30 }) }] },
+  t0l: { t: 'Een stem in de put', x: 'Het is nacht. Uit de put op het plein komt een stem, zacht, van heel diep. Het is jouw stem. "Heb jij mijn naam?" vraagt hij. "Ik ben hem kwijt."', c: [
+    { t: 'Antwoord met je eigen naam', ok: () => ({ txt: '"Dat is niet de mijne," zegt de stem teleurgesteld. "Nog niet." Het water in de put bevriest even.', hp: -.1, lore: 'naamloze' }) },
+    { t: 'Vraag wie ze is', chk: ['int', 15], ok: () => ({ txt: '"Ik was iemand," zegt de stem. "Ik gaf het weg. Nu ben ik alleen nog honger." Je handpalm gloeit zo fel dat de put ervan oplicht.', lore: 'naamloze', bless: 'atronach' }), no: () => ({ txt: 'De stem lacht, met jouw lach, en zwijgt.' }) },
+    { t: 'Doe de put dicht', ok: () => ({ txt: 'Je schuift het deksel erop. Het helpt niet. Je hoort haar nog tot de ochtend.' }) }] },
+  t1o: { t: 'Het archief onder de toren', x: 'Onder de klokkentoren werkt Zuster Marit, archivaris van de Orde, tussen stapels perkament. "De kroniek van Merrow," zegt ze, zonder op te kijken. "Wij hebben haar geschreven. Wil je weten wat er eerst stond?"', c: [
+    { t: 'Lees de oorspronkelijke kroniek', chk: ['int', 14], ok: () => ({ txt: 'In de oude tekst roept niemand de zee. Er staat alleen: "Op aanraden van de Zevende opende de Priores de sluizen. De vloot droeg pestvlaggen. Niemand keek goed."', lore: 'orde', xp: 40 }), no: () => ({ txt: 'Het oud-Valdorens is je te machtig. Marit glimlacht flauw.', lore: 'orde' }) },
+    { t: 'Vraag waarom de Orde de kroniek herschreef', ok: () => ({ txt: '"Omdat zij het vroeg," zegt Marit. "Ze wilde dat jullie Morrath zouden haten in plaats van haar. Een vijand onthoud je beter dan een keuze."', lore: 'orde', flag: 'zuster' }) },
+    { t: 'Neem de oude kroniek mee', chk: ['dex', 13], ok: () => ({ txt: 'Marit kijkt de andere kant op. Misschien expres. Tussen de bladen zit iets wat de Orde liever kwijt was.', item: 3 }), no: () => ({ txt: 'Marit ziet het. Je reputatie lijdt eronder.', curse: 'eedbreuk' }) }] },
+  t1l: { t: 'Alle klokken tegelijk', x: 'Midden in de nacht luiden alle verdronken klokken van Merrow tegelijk. Tamme staat op de klif, in zijn hemd. "Ze luiden een naam," zegt hij. "Ik hoor het bijna. Vier klanken."', c: [
+    { t: 'Luister met hem mee', chk: ['int', 15], ok: () => ({ txt: 'Tussen de klokslagen hoor je haar, of jezelf: iemand die probeert te onthouden hoe ze heet. De klokken zwijgen precies voor de laatste klank.', lore: 'v1l', xp: 50 }), no: () => ({ txt: 'Je hoort alleen klokken. Tamme huilt.' }) },
+    { t: 'Luid de oude klok terug', chk: ['str', 14], ok: () => ({ txt: 'Eén klok antwoordt. Dan alle. Dan is het stil, en de zee ligt glad als glas. Iets onder water heeft je gehoord.', bless: 'heler' }), no: () => ({ txt: 'Het touw schuurt je handen open.', hp: -.1 }) },
+    { t: 'Ga terug naar bed', ok: () => ({ txt: 'Je slaapt niet. Niemand in Klokkenburg slaapt.' }) }] },
+  t2o: { t: 'De zuster die krast', x: 'In de kapel van het fort zit een jonge zuster van de Orde op haar knieën bij de lege tombe van de Zesde. Ze krast met een beitel een naam weg. "Elke ochtend kras ik hem weg," zegt ze. "Elke nacht staat hij er weer. Ik ben Ronja. Ik geloof niet meer dat dit goed is."', c: [
+    { t: 'Help haar twijfelen', chk: ['int', 13], ok: () => ({ txt: '"De abt dacht het ook," zegt ze, en legt de beitel neer. Ze geeft je een opgevouwen vel: zijn laatste aantekening.', lore: 'abt', bless: 'heler' }), no: () => ({ txt: 'Ze schudt haar hoofd en pakt de beitel weer op.' }) },
+    { t: 'Vraag naar de abt', ok: () => ({ txt: '"Hij zei dat de leegte ergens moest wonen," zegt Ronja. "Daarna kwam Zuster Ilse op bezoek. Een week later was hij dood."', lore: 'abt', flag: 'zuster' }) },
+    { t: 'Laat haar haar werk doen', ok: () => ({ txt: 'Het geluid van de beitel volgt je tot op de wallen.' }) }] },
+  t2l: { t: 'De tombe is niet leeg', x: 'Bresk wacht je op bij de kapel, bleek. "In de tombe van de Zesde ligt iemand," zegt hij. "Ze ademt. Ze heeft..." Hij maakt de zin niet af. Als je kijkt, zie je waarom. Ze heeft jouw gezicht.', c: [
+    { t: 'Raak haar aan', ok: () => ({ txt: 'Ze opent haar ogen. Ze zijn leeg. "Ben je gekomen om me terug te geven wat ik weggaf?" vraagt ze met jouw stem. Dan vergaat ze tot as, en de tombe is weer leeg.', lore: 'naamloze', xp: 50, curse: 'onrust' }) },
+    { t: 'Spreek de stukken van haar naam uit die je kent', req: () => M.frags.length > 0, ok: () => ({ txt: `"${[0, 1, 2, 3].map(i => M.frags.includes(i) ? NAME_FRAGS[i] : '...').join('')}," zeg je. Ze glimlacht in haar slaap. Voor het eerst lijkt ze op iemand anders dan jij.`, bless: 'toren', xp: 40 }) },
+    { t: 'Laat haar slapen', ok: () => ({ txt: 'Bresk sluit de kapel af. "Ik heb niets gezien," zegt hij. "Jij ook niet."' }) }] },
+  t3b: { t: 'De brief met de kroon', x: 'De lampwachter haalt een verzegelde brief tevoorschijn. Op de lak staat een kroon. "Al veertig generaties bewaard," zegt hij. "Voor wie met het teken komt. Dat ben jij, niet?"', c: [
+    { t: 'Open de brief', ok: () => ({ txt: 'Het handschrift is oud, maar vast. Morrath schrijft je als een gelijke.', lore: 'brief', flag: 'koerier' }) },
+    { t: 'Verbrand hem ongelezen', ok: () => ({ txt: 'De lak smelt. Heel even ruik je ijzer en wierook. De lampwachter kijkt je aan alsof je iets heel dapper of heel doms hebt gedaan.', bless: 'krijger' }) },
+    { t: 'Laat hem verzegeld', ok: () => ({ txt: '"Dan bewaar ik hem nog wat langer," zegt hij. "Ik ben er goed in."' }) }] },
+  t3l: { t: 'De lamp flakkert', x: 'Voor het eerst in drieduizend jaar flakkert de lamp van Laatste Licht. De lampwachter zit ernaast, dood, met een glimlach. De vlam buigt naar je toe, als iets dat honger heeft.', c: [
+    { t: 'Spreek haar volledige naam in de vlam', req: () => M.frags.length >= 4, ok: () => ({ txt: '"Veridane," zeg je. De vlam wordt wit en stil. Ergens in het oosten, in de borst van een koning, houdt iets heel even op met eten.', bless: 'atronach', xp: 60, lore: 'naam' }) },
+    { t: 'Voed de vlam met je eigen mana', ok: () => ({ txt: 'De vlam neemt alles en wordt rustiger. Niet tevreden. Rustiger.', mp: -1, bless: 'magier' }) },
+    { t: 'Laat de vlam doven', ok: () => ({ txt: 'De lamp gaat uit. In het donker hoor je iemand ver weg je naam roepen, alsof het de hare is.', curse: 'onrust', xp: 30 }) }] }
+};
+STORY[0] = [STORY[0][0], STORY[0][1], STORY[0][2], STORY_NEW.t0b, STORY_NEW.t0l];
+STORY[1] = [STORY[1][0], STORY[1][1], STORY_NEW.t1o, STORY[1][2], STORY_NEW.t1l];
+STORY[2] = [STORY[2][0], STORY[2][1], STORY_NEW.t2o, STORY[2][2], STORY_NEW.t2l];
+STORY[3] = [STORY[3][0], STORY[3][1], STORY[3][2], STORY_NEW.t3b, STORY_NEW.t3l];
+// geruchten per laag (kroniek, Zevende, Orde, Morrath, Ledige)
+TOWNS[0].rum = [TOWNS[0].rum[0], TOWNS[0].rum[1], TOWNS[0].rum[2], 'De put op het plein werd gegraven in het pestjaar, zeggen de oudsten. Op bevel van de koning zelf.', 'Kinderen zweren dat er \'s nachts iemand uit de put roept. Steeds dezelfde vraag, naar een naam.'];
+TOWNS[1].rum = [TOWNS[1].rum[0], TOWNS[1].rum[1], 'Onder de klokkentoren ligt een archief van de Orde. De archivaris laat niemand binnen, behalve wie het teken draagt.', TOWNS[1].rum[2], 'Sinds gisteren luiden alle klokken onder water tegelijk. Tamme zegt dat ze een naam luiden.'];
+TOWNS[2].rum = [TOWNS[2].rum[0], TOWNS[2].rum[1], 'Er is een jonge zuster van de Orde in het fort. Ze krast elke ochtend dezelfde naam weg. Elke nacht staat hij er weer.', TOWNS[2].rum[2], 'In de lege tombe in de kapel ligt nu iemand. Niemand durft te kijken wie.'];
+TOWNS[3].rum = [TOWNS[3].rum[0], TOWNS[3].rum[1], TOWNS[3].rum[2], 'De lampwachter bewaart een verzegelde brief. Op de lak staat een kroon.', 'De lamp flakkert. Voor het eerst in drieduizend jaar.'];
+// baaszinnen per laag (Zevende, Orde, Morrath, Ledige)
+EN.moeder.say = [EN.moeder.say[0], 'Om haar hals hangt een verroest medaillon met zeven stralen. Iemand van de Orde heeft haar ooit gevoerd, en is daarna nooit meer teruggekomen.', EN.moeder.say[1], 'Ze snuffelt aan je en jankt, als een hond die haar baasje terugziet. Dan ontbloot ze haar tanden. "Je ruikt naar haar. Maar je bent haar niet. Nog niet."'];
+EN.priores.say = [EN.priores.say[0], '"De zusters kwamen na de vloed en schreven op dat Morrath de zee riep. Ik heb ze niet tegengesproken. Ik was al dood."', EN.priores.say[1], '"Ik zie haar achter je ogen," fluistert ze. "Ze heeft honger. Ze heeft altijd honger gehad."'];
+EN.vorstbaard.say = [EN.vorstbaard.say[0], '"De Orde kraste de naam van de Zesde van zijn graf. Ik heb hem gedood, maar zij hebben hem uitgewist. Wie van ons is erger?"', EN.vorstbaard.say[1], '"Op de brug was ze nog iemand. Daarna niet meer. Wat ben jij, Zegeldrager? Iemand, of het gat dat zij achterliet?"'];
+EN.colossus.say = [EN.colossus.say[0], '"ORDE VAN DE ZEVEN STRALEN: TOEGANG INGETROKKEN. REDEN: ZIJ VROEGEN ONS TE VERGETEN. WIJ VERGETEN NIET."', EN.colossus.say[1], '"ZEVENDE GEDETECTEERD. NAAM ONBEKEND. NAAM ONBEKEND. NAAM ONBEKEND."'];
+EN.morrath1.say = [EN.morrath1.say[0], '"De Orde heeft drieduizend jaar voor haar gelogen. Wat denk je dat ze over mij hebben verteld?"', EN.morrath1.say[1], '"Ze woont in mijn borst, wist je dat? Al drieduizend jaar. Ze eet en eet, en ze weet niet eens meer hoe ze heet."'];
+
+// routes naar de eindes 'De Askoning' (koerier) en 'De Dove Bron' (zuster) in elke laag vanaf Veteraan
+STORY_NEW.t1o.c.push({ t: 'Volg de man in het grijs die het archief verlaat', ok: () => ({ txt: 'Hij wacht je op bij de klif, alsof hij wist dat je zou komen. "Mijn meester heeft geduld," zegt hij met een stem als brandend papier. "Maar niet oneindig. Aan het einde biedt hij je zijn kroon. Denk erover na."', flag: 'koerier' }) });
+STORY_NEW.t0b.c.push({ t: 'Vraag de vrouw naar de Orde', ok: () => ({ txt: '"Zuster Ilse? Die is gisteren vertrokken, naar het oosten," zegt ze. "Ze liet dit voor je achter." Op het briefje staat één regel: "Als je het hart in handen hebt: breek het."', lore: 'ilse', flag: 'zuster' }) });
+STORY_NEW.t1l.c.push({ t: 'Volg de man in het grijs over de klif', ok: () => ({ txt: 'De Askoerier staat bij de rand, zijn mantel wappert niet in de wind. "Zij heeft honger," zegt hij. "Mijn meester is moe. Een van jullie twee moet de kroon dragen. Kies goed."', flag: 'koerier' }) });
+STORY_NEW.t2l.c.push({ t: 'Lees het briefje dat op de tombe ligt', ok: () => ({ txt: 'Het handschrift van Zuster Ilse: "Nu je haar gezien hebt, weet je dat ik gelijk had. Breek het. Ook als ik er dan niet meer ben."', lore: 'ilse', flag: 'zuster' }) });
+
+const tier = () => [0, 0, 1, 2, 3, 4][S.diff]; // verhaallaag
 const EVX = {};
 STORY.forEach((arr, i) => arr.forEach((ev, t) => { ev.id = `st${i}${t}`; EVX[ev.id] = ev; }));
 SPOTS.forEach((arr, i) => arr.forEach((ev, j) => { ev.id = `sp${i}${j}`; EVX[ev.id] = ev; }));
-for (let r = 0; r < 5; r++) for (const t of ['a', 'b']) {
+for (let r = 0; r < 5; r++) for (const t of ['a', 'o', 'b', 'l']) {
   const id = `v${r}${t}`;
-  EVX['vis' + r + t] = { id: 'vis' + r + t, t: t === 'a' ? 'Visioen' : 'Herinnering', x: `<i>Je hand brandt. De wereld valt weg.</i><br><br>${LORE[id][1]}`, c: [{ t: 'Laat het visioen los', ok: () => ({ txt: 'Je komt bij, op je knieën. Het teken in je hand is warm.', lore: id, xp: 25 + S.reg * 20 }) }] };
+  EVX['vis' + r + t] = { id: 'vis' + r + t, t: VIS_TITLE[t], x: `<i>Je hand brandt. De wereld valt weg.</i><br><br>${LORE[id][1]}`, c: [{ t: 'Laat het visioen los', ok: () => ({ txt: 'Je komt bij, op je knieën. Het teken in je hand is warm.', lore: id, xp: 25 + S.reg * 20 }) }] };
 }
 const getEvent = id => EVENTS.find(e => e.id === id) || EVX[id];
 
@@ -710,10 +794,10 @@ const EVENTS = [
 // ---------- state ----------
 let M = store.get(META_KEY) || null;
 if (!M || typeof M !== 'object') M = {};
-M = Object.assign({ unlocked: 2, relics: [], lore: [], wins: [0, 0, 0, 0, 0, 0], endings: [], runs: 0, deaths: 0, kills: 0, best: 0 }, M);
+M = Object.assign({ unlocked: 2, relics: [], lore: [], wins: [0, 0, 0, 0, 0, 0], endings: [], frags: [], runs: 0, deaths: 0, kills: 0, best: 0 }, M);
 let S = store.get(RUN_KEY);
 if (S && S.v !== 1) S = null;
-if (S) { S.quests = (S.quests || []).map(q => q.until === undefined ? { ...q, until: q.reg, borg: 0, long: false } : q); S.rep = S.rep || 0; S.eliteDone = S.eliteDone || []; S.p.lijken = S.p.lijken || 0; S.flags = S.flags || []; S.frags = S.frags || []; S.vis = S.vis || []; if (S.c) { S.c.allies = S.c.allies || []; S.c.corpses = S.c.corpses || 0; } }
+if (S) { S.quests = (S.quests || []).map(q => q.until === undefined ? { ...q, until: q.reg, borg: 0, long: false } : q); S.rep = S.rep || 0; S.eliteDone = S.eliteDone || []; S.p.lijken = S.p.lijken || 0; (S.frags || []).forEach(f => { if (!M.frags.includes(f)) M.frags.push(f); }); S.flags = S.flags || []; S.frags = S.frags || []; S.vis = S.vis || []; if (S.c) { S.c.allies = S.c.allies || []; S.c.corpses = S.c.corpses || 0; } }
 let VIEW = S ? 'title' : 'title'; // titelscherm altijd eerst
 let CR = null; // karaktercreatie (niet opgeslagen)
 let OV = null; // overlay buiten run-state: 'codex'
@@ -1405,7 +1489,7 @@ function enterNode(i) {
     case 'gevecht': startFight(genGroup(), { kind: 'normal' }); return;
     case 'elite': { const lead = S.eliteDone.includes(reg.elite) ? 'champ:' + pick(reg.pool) : reg.elite; startFight(S.reg >= 2 ? [lead, pick(reg.pool)] : [lead], { kind: 'elite' }); return; }
     case 'boss': startFight([reg.boss], { kind: 'boss' }); return;
-    case 'visioen': S.vis.push(S.reg); S.screen = 'event'; S.ctx = { id: 'vis' + S.reg + (tier() === 1 || !M.lore.includes('v' + S.reg + 'a') ? 'a' : 'b'), res: null }; break;
+    case 'visioen': S.vis.push(S.reg); S.screen = 'event'; S.ctx = { id: visionFor(S.reg), res: null }; break;
     case 'kist': S.screen = 'kist'; S.ctx = newChest(); break;
     case 'gebeurtenis': S.screen = 'event'; S.ctx = { id: pickEvent(), res: null }; break;
     case 'handelaar': S.screen = 'shop'; S.ctx = { stock: genStock(), tab: 'koop' }; break;
@@ -1461,7 +1545,7 @@ function applyOut(o) {
   if (o.bless) { const b = o.bless === 'rand' ? pick(BLESSING_IDS.filter(x => !S.bless.includes(x))) : o.bless; if (b && !S.bless.includes(b)) { S.bless.push(b); L.push(`${BLESS[b].n}: ${BLESS[b].d}`); } }
   if (o.curse) { const b = o.curse === 'rand' ? pick(CURSE_IDS) : o.curse; if (!S.bless.includes(b)) { S.bless.push(b); L.push(`<span class="down">${BLESS[b].n}: ${BLESS[b].d}</span>`); } }
   if (o.flag && !S.flags.includes(o.flag)) S.flags.push(o.flag);
-  if (o.frag !== undefined && !S.frags.includes(o.frag)) { S.frags.push(o.frag); L.push(`Naamfragment gevonden: <em>${NAME_FRAGS[o.frag]}</em> (${S.frags.length}/4)`); if (S.frags.length === 4 && unlockLore('naam')) L.push('Nieuwe pagina in de Boekerij: <i>De Naam</i>'); }
+  if (o.frag !== undefined) { if (!M.frags.includes(o.frag)) { M.frags.push(o.frag); saveMeta(); L.push(`Naamfragment gevonden: <em>${NAME_FRAGS[o.frag]}</em> (${M.frags.length}/4, blijft bewaard in de Boekerij)`); if (M.frags.length === 4 && unlockLore('naam')) L.push('Nieuwe pagina in de Boekerij: <i>De Naam</i>'); } else L.push(`Dit stuk van haar naam kende je al: <em>${NAME_FRAGS[o.frag]}</em>`); }
   if (o.tome) { const tm = genTome(); addToBag(tm || genItem({ ilvl: curL() + 1, bias: 2 }), L); }
   clampVitals();
   return L;
@@ -1684,10 +1768,10 @@ function endChoice() { if (tier() === 0) return victory('herstel'); S.screen = '
 function endHint(k) {
   if (k === 'troon') return 'Iemand in het grijs had je een aanbod willen doen.';
   if (k === 'vernietig') return 'Iemand had je om een belofte willen vragen.';
-  return `Je mist een naam. Fragmenten: ${S.frags.length}/4${tier() < 2 ? ' (alleen te vinden op Legende en hoger)' : ''}.`;
+  return `Je mist een naam. Naamfragmenten in de Boekerij: ${M.frags.length}/4. ${S.diff < 3 ? 'Ze zijn te vinden vanaf Meester, over meerdere tochten.' : 'Zoek de rest op Meester en Legende.'}`;
 }
 function rKeuze() {
-  const has = { koerier: S.flags.includes('koerier'), zuster: S.flags.includes('zuster'), frags: S.frags.length >= 4 };
+  const has = { koerier: S.flags.includes('koerier'), zuster: S.flags.includes('zuster'), frags: M.frags.length >= 4 && S.diff >= 3 };
   setUI(`<h2>Het hart</h2><p class="prose">De Holle Koning ligt in de as. In je handen klopt zijn hart, zwart als obsidiaan en warmer dan het zou mogen zijn. Wat doe je ermee?</p>`,
     `<div class="stack">${Object.keys(ENDINGS).map(k => { const E = ENDINGS[k]; const ok = !E.need || has[E.need]; return `<button data-a="ending" data-v="${k}" ${ok ? '' : 'disabled'}>${ok ? E.n : '???'}<span class="sub">${ok ? E.d : endHint(k)}</span></button>`; }).join('')}</div>`);
 }
@@ -1718,7 +1802,7 @@ function rStad() {
     const cost = 10 * (T.i + 1);
     setUI(`<h2>De herberg</h2><p class="prose">Het ruikt naar natte wol en gebraden ui. Een bard zingt over de Zeven Wachters. Hij kent maar zes coupletten.</p>
       <div class="sec">GERUCHTEN</div>${town.rum.slice(0, tr + 1).map(r => `<div class="lore">${r}</div>`).join('')}
-      ${tr < 2 ? '<p class="small mute">Op hogere moeilijkheid hoor je hier meer.</p>' : ''}`,
+      ${tr < 4 ? '<p class="small mute">Op hogere moeilijkheid hoor je hier meer.</p>' : ''}`,
       `<button data-a="trest" ${T.rest || S.gold < cost ? 'disabled' : ''}>Huur een kamer (${cost} goud)<span class="sub">${T.rest ? 'Je hebt al gerust' : 'HP en MP volledig hersteld'}</span></button>${back}`);
     return;
   }
@@ -2073,6 +2157,7 @@ function rSkillPick() {
 function rCodex() {
   const tab = OVT;
   let body;
+  const naamRegel = `<p class="small mute">Naam van de Zevende: <em>${[0, 1, 2, 3].map(i => M.frags.includes(i) ? NAME_FRAGS[i] : '?').join(' · ')}</em></p>`;
   if (tab === 'eind') {
     body = Object.keys(ENDINGS).map(k => M.endings.includes(k) ? `<div class="card"><h3>${ENDINGS[k].n}</h3><p class="small" style="margin:0">${ENDINGS[k].d}</p></div>` : `<div class="card lock small">??? · nog niet bereikt${ENDINGS[k].need ? ' (vanaf Veteraan)' : ''}</div>`).join('');
   } else if (tab === 'lore') {
@@ -2086,7 +2171,7 @@ function rCodex() {
       ${DIFFS.map((d, i) => `<tr><td>${i < M.unlocked ? d.n : 'Vergrendeld'}</td><td>${M.wins[i] ? `${M.wins[i]}× uitgespeeld` : '–'}</td></tr>`).join('')}
     </table></div>`;
   }
-  setUI(`<h2>Boekerij</h2><div class="tabs"><button class="${tab === 'lore' ? 'sel' : ''}" data-a="cxtab" data-v="lore">Pagina's ${M.lore.length}/${Object.keys(LORE).length}</button><button class="${tab === 'rel' ? 'sel' : ''}" data-a="cxtab" data-v="rel">Relikwieën ${M.relics.length}/${Object.keys(RELICS).length}</button><button class="${tab === 'eind' ? 'sel' : ''}" data-a="cxtab" data-v="eind">Eindes ${M.endings.length}/4</button><button class="${tab === 'ere' ? 'sel' : ''}" data-a="cxtab" data-v="ere">Erelijst</button></div><div class="stack">${body}</div>`,
+  setUI(`<h2>Boekerij</h2><div class="tabs"><button class="${tab === 'lore' ? 'sel' : ''}" data-a="cxtab" data-v="lore">Pagina's ${M.lore.length}/${Object.keys(LORE).length}</button><button class="${tab === 'rel' ? 'sel' : ''}" data-a="cxtab" data-v="rel">Relikwieën ${M.relics.length}/${Object.keys(RELICS).length}</button><button class="${tab === 'eind' ? 'sel' : ''}" data-a="cxtab" data-v="eind">Eindes ${M.endings.length}/4</button><button class="${tab === 'ere' ? 'sel' : ''}" data-a="cxtab" data-v="ere">Erelijst</button></div>${tab === 'lore' ? naamRegel : ''}<div class="stack">${body}</div>`,
     `<button class="c" data-a="cxclose">Sluiten</button>`);
 }
 let MENU_CONFIRM = false;
